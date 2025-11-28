@@ -10,6 +10,56 @@ from bartendro import db
 from bartendro.model.booze import Booze
 from bartendro.model.drink import Drink
 
+# Genetic Algorithm Configuration
+#
+# The genetic algorithm works by maintaining a "population" of candidate solutions.
+# Each solution is a list of booze IDs to assign to the unfilled dispenser slots.
+# The algorithm evolves better solutions over multiple "generations" by:
+#   1. Evaluating fitness (how many drinks can be made with each solution)
+#   2. Selecting the best solutions to survive
+#   3. Creating new solutions via crossover (combining parts of two parents)
+#   4. Mutating some solutions (randomly swapping boozes)
+#
+# Key tradeoffs:
+#   - More generations/larger population = better results but slower
+#   - Higher mutation = more exploration but may lose good solutions
+#   - More survivors = more diversity but slower convergence
+#   - More random injection = prevents local optima but slows convergence
+
+# Maximum number of generations to run before stopping.
+# Higher values give the algorithm more time to find optimal solutions.
+# With 8 dispensers and ~100 boozes, 3000 generations should be sufficient.
+# If results seem suboptimal, try increasing to 5000-10000.
+GA_MAX_GENERATIONS = 3000
+
+# Number of candidate solutions maintained in the population.
+# Larger populations explore more of the solution space but are slower.
+# Rule of thumb: population should be at least 10x the number of variables.
+# With 6 unfilled slots, 500 is generous. For 8 slots, consider 800-1000.
+GA_POPULATION_SIZE = 500
+
+# Probability that each child solution will be mutated (0.0 to 1.0).
+# Mutation replaces one booze with a random different booze.
+# Too low (< 0.1): algorithm may get stuck in local optima
+# Too high (> 0.7): algorithm becomes random search, loses good solutions
+# Sweet spot is typically 0.2-0.5 for this problem size.
+GA_MUTATION_RATE = 0.5
+
+# Selection pressure: keep top 1/N of population as survivors.
+# Value of 4 means top 25% survive to produce offspring.
+# Lower values (2-3): less pressure, more diversity, slower convergence
+# Higher values (5-8): more pressure, faster convergence, risk of premature convergence
+# For this problem, 4 is a reasonable balance.
+GA_SURVIVOR_RATIO = 4
+
+# Diversity injection: add 1/N new random individuals each generation.
+# Value of 25 means 4% of population is replaced with random solutions.
+# This prevents the population from becoming too homogeneous.
+# Lower values (10-15): more diversity injection, slower convergence
+# Higher values (30-50): less injection, may get stuck in local optima
+# If you're getting suboptimal results, try lowering to 10-15.
+GA_DIVERSITY_RATIO = 15
+
 
 class DrinkPlanner:
     def __init__(self, num_dispensers, locked_boozes, blocked_boozes=None):
@@ -126,9 +176,9 @@ class DrinkPlanner:
         
         return child1, child2
     
-    def _mutate(self, individual, mutation_rate=0.1):
+    def _mutate(self, individual):
         """Mutate an individual by swapping boozes."""
-        if random.random() < mutation_rate and len(individual) > 0:
+        if random.random() < GA_MUTATION_RATE and len(individual) > 0:
             # Replace one booze with a random one not in the selection
             idx = random.randint(0, len(individual) - 1)
             current = set(individual) | set(self.locked_boozes)
@@ -137,7 +187,7 @@ class DrinkPlanner:
                 individual[idx] = random.choice(available)
         return individual
     
-    def _run_generation(self, population, population_size=50):
+    def _run_generation(self, population):
         """Run one generation of the genetic algorithm."""
         # Calculate fitness for all individuals
         fitness_scores = [(ind, self._calculate_fitness(ind)) for ind in population]
@@ -148,25 +198,31 @@ class DrinkPlanner:
             self.best_fitness = fitness_scores[0][1]
             self.best_solution = fitness_scores[0][0][:]
         
-        # Selection: keep top 50%
-        survivors = [ind for ind, _ in fitness_scores[:population_size // 2]]
+        # Selection: keep top survivors
+        num_survivors = GA_POPULATION_SIZE // GA_SURVIVOR_RATIO
+        survivors = [ind for ind, _ in fitness_scores[:num_survivors]]
+        
+        # Also add some random individuals to maintain diversity
+        num_random = GA_POPULATION_SIZE // GA_DIVERSITY_RATIO
+        for _ in range(num_random):
+            survivors.append(self._create_individual())
         
         # Create new population through crossover and mutation
         new_population = survivors[:]
-        while len(new_population) < population_size:
-            parent1, parent2 = random.sample(survivors, 2)
+        while len(new_population) < GA_POPULATION_SIZE:
+            parent1, parent2 = random.sample(survivors[:num_survivors], 2)
             child1, child2 = self._crossover(parent1, parent2)
             new_population.append(self._mutate(child1))
-            if len(new_population) < population_size:
+            if len(new_population) < GA_POPULATION_SIZE:
                 new_population.append(self._mutate(child2))
         
         self.generation += 1
         return new_population
     
-    def _planning_loop(self, max_generations=100, population_size=50):
+    def _planning_loop(self):
         """Main planning loop that runs in a background thread."""
         # Initialize population
-        population = [self._create_individual() for _ in range(population_size)]
+        population = [self._create_individual() for _ in range(GA_POPULATION_SIZE)]
         
         # Run initial fitness to set best solution
         if population:
@@ -175,8 +231,8 @@ class DrinkPlanner:
             self.best_fitness = fitness_scores[0][1]
             self.best_solution = fitness_scores[0][0][:]
         
-        while self.is_running and self.generation < max_generations:
-            population = self._run_generation(population, population_size)
+        while self.is_running and self.generation < GA_MAX_GENERATIONS:
+            population = self._run_generation(population)
         
         self.is_running = False
     

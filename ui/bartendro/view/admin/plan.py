@@ -78,6 +78,7 @@ def plan_drinks():
     """Get the list of drinks that can be made with the given booze selection."""
     from sqlalchemy import text
     from bartendro.model.drink import Drink
+    from bartendro.model.booze import Booze
     
     data = request.get_json()
     booze_ids = data.get('booze_ids', [])
@@ -86,6 +87,11 @@ def plan_drinks():
         return jsonify({'drinks': []})
     
     try:
+        # Get booze names lookup
+        booze_names = {}
+        for booze in db.session.query(Booze).all():
+            booze_names[booze.id] = booze.name
+        
         # Get all drinks and their required boozes using raw SQL
         # Note: drink name is in drink_name table, not drink table
         result = db.session.execute(text("""SELECT d.id, dn.name, db.booze_id
@@ -98,6 +104,7 @@ def plan_drinks():
         # Build dict of drink -> required boozes
         drink_reqs = {}
         drink_names = {}
+        drink_booze_ids = {}  # drink_id -> list of booze_ids
         for row in result:
             drink_id = row[0]
             drink_name = row[1]
@@ -105,14 +112,22 @@ def plan_drinks():
             if drink_id not in drink_reqs:
                 drink_reqs[drink_id] = set()
                 drink_names[drink_id] = drink_name
+                drink_booze_ids[drink_id] = []
             drink_reqs[drink_id].add(booze_id)
+            drink_booze_ids[drink_id].append(booze_id)
         
         # Find drinks that can be made
         available_boozes = set(booze_ids)
         can_make = []
         for drink_id, required in drink_reqs.items():
             if required.issubset(available_boozes):
-                can_make.append({'id': drink_id, 'name': drink_names[drink_id]})
+                # Get booze names for this drink
+                boozes_str = ', '.join([booze_names.get(bid, 'Unknown') for bid in sorted(drink_booze_ids[drink_id])])
+                can_make.append({
+                    'id': drink_id, 
+                    'name': drink_names[drink_id],
+                    'boozes': boozes_str
+                })
         
         # Sort by name
         can_make.sort(key=lambda x: x['name'])

@@ -52,7 +52,7 @@ def dispenser():
 
     form = F(**kwargs)
     for i, dispenser in enumerate(dispensers):
-        form["dispenser%d" % (i + 1)].data = "%d" % booze_list[dispenser.booze_id - 1][0]
+        form["dispenser%d" % (i + 1)].data = "%d" % dispenser.booze_id
         form["actual%d" % (i + 1)].data = dispenser.actual
         form["size%d" % (i + 1)].data = dispenser.bottle_size
 
