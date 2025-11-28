@@ -2,25 +2,25 @@
 {% block body %}
 <div class="container-fluid">
     <div class="row-fluid">	
-        <div class="span12 admin-box">	
+        <div class="span12 admin-box" style="height: auto;">	
             <h2>{{ title }}</h2>
             {% if monthly_stats %}
             <table class="table table-striped table-bordered">
                 <thead>
                     <tr>
-                        <th>Year</th>
                         <th>Month</th>
-                        <th>Drinks Poured</th>
-                        <th>Total Volume (L)</th>
+                        <th>Drinks Poured {{ chart_years[0] }}</th>
+                        <th>Drinks Poured {{ chart_years[1] }}</th>
+                        <th>Drinks Poured {{ chart_years[2] }}</th>
                     </tr>
                 </thead>
                 <tbody>
-                    {% for year, month, drink_count, total_volume in monthly_stats %}
+                    {% for month, count_year1, count_year2, count_year3 in monthly_stats %}
                     <tr>
-                        <td>{{ year }}</td>
                         <td>{{ month }}</td>
-                        <td>{{ drink_count }}</td>
-                        <td>{{ "%.2f"|format((total_volume or 0) / 1000) }}</td>
+                        <td>{{ count_year1 }}</td>
+                        <td>{{ count_year2 }}</td>
+                        <td>{{ count_year3 }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
