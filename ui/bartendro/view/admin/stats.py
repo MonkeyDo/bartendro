@@ -1,6 +1,6 @@
 import time
 import calendar
-from datetime import datetime
+from datetime import datetime, timedelta
 from bartendro import app, db
 from flask import Flask, request, render_template
 from flask_login import login_required
@@ -46,9 +46,41 @@ def stats_index():
     for year in years:
         chart_data[year] = [stats_dict.get((year, m), 0) for m in range(1, 13)]
 
+    # Query to get drink counts grouped by year and week for last 3 years
+    weekly_stats_raw = db.session.query(column("year"), column("week"), column("drink_count"))\
+                 .from_statement(text("""SELECT 
+                                            strftime('%Y', datetime(drink_log.time, 'unixepoch')) as year,
+                                            strftime('%W', datetime(drink_log.time, 'unixepoch')) as week,
+                                            count(*) as drink_count
+                                           FROM drink_log 
+                                          WHERE strftime('%Y', datetime(drink_log.time, 'unixepoch')) >= :min_year
+                                       GROUP BY year, week
+                                       ORDER BY year DESC, week DESC""")).params(min_year=str(years[-1])).all()
+
+    # Create a dict for quick lookup: {(year, week): drink_count}
+    weekly_stats_dict = {}
+    for year, week, drink_count in weekly_stats_raw:
+        weekly_stats_dict[(int(year), int(week))] = drink_count
+    
+    # Build weekly table data: list of (week_label, year1_count, year2_count, year3_count)
+    weekly_stats = []
+    for w in range(1, 54):
+        week_label = f"Week {w}"
+        counts = [weekly_stats_dict.get((year, w), 0) for year in years]
+        weekly_stats.append((week_label, counts[0], counts[1], counts[2]))
+    
+    # Build weekly chart data
+    weekly_chart_labels = [f"W{w}" for w in range(1, 54)]
+    weekly_chart_data = {}
+    for year in years:
+        weekly_chart_data[year] = [weekly_stats_dict.get((year, w), 0) for w in range(1, 54)]
+
     return render_template("admin/stats",
                            options=app.options,
                            title="Drink Statistics",
                            monthly_stats=monthly_stats,
+                           weekly_stats=weekly_stats,
                            chart_data=chart_data,
+                           weekly_chart_data=weekly_chart_data,
+                           weekly_chart_labels=weekly_chart_labels,
                            chart_years=years)
