@@ -59,6 +59,7 @@
                 <div class="div-spacer">
                     <a class="btn btn-large" id="add-booze-button" onclick="add_booze()">add booze</a>
                     <a class="btn btn-large" onclick="cancel()">cancel</a>
+                    <a class="btn btn-large btn-danger" id="delete-button" onclick="delete_drink()" style="display: none;">delete</a>
                     <a class="btn btn-large btn-success" id="taster" onclick="taster()">taster</a>
                     <a class="btn btn-large btn-primary submit-button" onclick="save()">save</a>
                 </div>
@@ -187,6 +188,13 @@ function load_form(drink)
     }
     $("#drink-form").valid();
     update_taster_button();
+    
+    // Show delete button only when editing existing drink
+    if (drink['id'] > 0) {
+        $("#delete-button").show();
+    } else {
+        $("#delete-button").hide();
+    }
 }
 
 function get_current_drink_data()
@@ -257,7 +265,37 @@ function cancel()
     $("#drink-available").prop("checked", false);
     $("#drink-popular").prop("checked", false);
     $("#booze-lines").html("");
+    $("#delete-button").hide();
     num_boozes = 0;
+}
+
+function delete_drink()
+{
+    var drink_id = $("#drink-id").val();
+    if (!drink_id || drink_id == "0") {
+        set_message("No drink selected to delete.");
+        return;
+    }
+    
+    var drink_name = $("#drink-name").val();
+    if (!confirm("Are you sure you want to delete '" + drink_name + "'?")) {
+        return;
+    }
+    
+    $.ajax({
+        url: "/ws/drink/" + drink_id + "/delete",
+        type: "POST",
+        dataType: "json",
+        contentType: "application/json; charset=utf-8",
+        success: function(json) {
+            set_message(drink_name + " has been deleted.");
+            $("#drink-row-" + drink_id).remove();
+            cancel();
+        },
+        error: function(xhr, txtStatus, errorThrown) {
+            set_message("Failed to delete drink. Status: " + xhr.status);
+        }
+    });
 }
 
 function update_taster_button()

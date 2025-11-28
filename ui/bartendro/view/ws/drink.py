@@ -109,6 +109,49 @@ def drink_load(id):
     return json.dumps(drink)
 
 
+DELETED_DRINK_ID = 1
+
+@app.route('/ws/drink/<int:drink_id>/delete', methods=["POST"])
+@login_required
+def ws_drink_delete(drink_id):
+    """Delete a drink and its associated drink_booze records."""
+    from bartendro.model.drink_log import DrinkLog
+    from bartendro.model.custom_drink import CustomDrink
+    
+    if drink_id == DELETED_DRINK_ID:
+        raise BadRequest("Cannot delete the 'Deleted Drink' placeholder")
+    
+    drink = Drink.query.filter_by(id=int(drink_id)).first()
+    if not drink:
+        raise BadRequest("Drink not found")
+    
+    try:
+        # Update drink_log references to point to deleted drink placeholder
+        db.session.query(DrinkLog).filter(DrinkLog.drink_id == drink_id).update({'drink_id': DELETED_DRINK_ID})
+        
+        # Delete associated custom_drink records
+        db.session.query(CustomDrink).filter(CustomDrink.drink_id == drink_id).delete()
+        
+        # Delete associated drink_booze records first
+        for drink_booze in drink.drink_boozes:
+            db.session.delete(drink_booze)
+        
+        # Delete the drink
+        db.session.delete(drink)
+        db.session.commit()
+    except Exception as e:
+        db.session.rollback()
+        raise BadRequest(f"Failed to delete drink: {str(e)}")
+    
+    # Clear caches
+    mc = app.mc
+    mc.delete("top_drinks")
+    mc.delete("other_drinks")
+    mc.delete("available_drink_list")
+    
+    return json.dumps({'status': 'ok', 'id': drink_id})
+
+
 @app.route('/ws/drink/<int:drink>/save', methods=["POST"])
 def ws_drink_save(drink):
 
