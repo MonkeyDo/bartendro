@@ -107,7 +107,7 @@
                                 <td>{{ drink.name.name }}</td>
                                 <td><input type="checkbox" id="available-{{ drink.id }}" data-drink-id="{{ drink.id }}" onchange="drink_changed()" {% if drink.available %}checked{% endif %}></td>
                                 <td><input type="checkbox" id="popular-{{ drink.id }}" data-drink-id="{{ drink.id }}" onchange="drink_changed()" {% if drink.popular %}checked{% endif %}></td>
-                                <td><a href="/admin/drink#edit-{{ drink.id }}" onclick="window.location='/admin/drink'; setTimeout(function() { edit({{ drink.id }}); }, 100); return false;">Edit</a></td>
+                                <td><a href="/admin/drink/{{ drink.id }}">Edit drink</a></td>
                             </tr>
                             {% endfor %}
                         </tbody>

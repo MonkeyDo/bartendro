@@ -107,6 +107,9 @@ $(document).ready(function()
     $("#status-message").hide();
     add_booze();
     update_taster_button();
+    {% if edit_drink_id %}
+    edit({{ edit_drink_id }});
+    {% endif %}
 });
 
 function set_message(txt)

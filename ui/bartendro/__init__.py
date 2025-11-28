@@ -60,7 +60,7 @@ ShotLog.booze = relationship(Booze)
 # Import views
 from bartendro.view import root, trending
 from bartendro.view.admin import booze as booze_admin, drink as drink_admin, \
-                                 dispenser as admin_dispenser, report, liquidlevel, user, options, debug
+                                 dispenser as admin_dispenser, report, liquidlevel, user, options, debug, stats
 from bartendro.view.drink import drink
 from bartendro.view.ws import booze as ws_booze, dispenser as ws_dispenser, drink as ws_drink, \
                               misc as ws_misc, liquidlevel, option as ws_options

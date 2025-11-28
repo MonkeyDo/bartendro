@@ -11,8 +11,9 @@ from bartendro.model.drink_name import DrinkName
 
 
 @app.route('/admin/drink')
+@app.route('/admin/drink/<int:drink_id>')
 @login_required
-def admin_drink_new():
+def admin_drink_new(drink_id=None):
     drinks = db.session.query(Drink).join(DrinkName).filter(Drink.name_id == DrinkName.id) \
                                  .order_by(asc(func.lower(DrinkName.name))).all()
 
@@ -25,4 +26,5 @@ def admin_drink_new():
                            booze_list=booze_list,
                            drinks=drinks,
                            dispensers=dispensers,
-                           count=app.driver.count())
+                           count=app.driver.count(),
+                           edit_drink_id=drink_id)
