@@ -74,7 +74,11 @@ def dispenser():
     else:
         state = "Bartendro is in bad state: %d" % bstate
 
-    avail_drinks = app.mixer.get_available_drink_list()
+    avail_drink_ids = app.mixer.get_available_drink_list()
+    avail_drinks = []
+    if avail_drink_ids:
+        avail_drinks = db.session.query(Drink).filter(Drink.id.in_(avail_drink_ids)).all()
+        avail_drinks = sorted(avail_drinks, key=lambda d: d.name.name)
     return render_template("admin/dispenser",
                            title="Dispensers",
                            calibrate_ml=CALIBRATE_ML,
@@ -86,6 +90,7 @@ def dispenser():
                            error=error,
                            updated=updated,
                            num_drinks=len(avail_drinks),
+                           avail_drinks=avail_drinks,
                            options=app.options,
                            dispenser_version=driver.dispenser_version,
                            states=states)
@@ -117,3 +122,26 @@ def save():
 
     app.mixer.check_levels()
     return redirect('/admin?saved=1')
+
+
+@app.route('/admin/save_drink_states', methods=['POST'])
+@login_required
+def save_drink_states():
+    data = request.get_json()
+    if not data or 'drinks' not in data:
+        return 'Invalid data', 400
+    
+    for drink_data in data['drinks']:
+        drink = db.session.query(Drink).filter(Drink.id == drink_data['id']).first()
+        if drink:
+            drink.available = drink_data['available']
+            drink.popular = drink_data['popular']
+    
+    db.session.commit()
+    
+    mc = app.mc
+    mc.delete("top_drinks")
+    mc.delete("other_drinks")
+    mc.delete("available_drink_list")
+    
+    return 'OK'
