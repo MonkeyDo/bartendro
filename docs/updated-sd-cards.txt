@@ -1,3 +1,0 @@
-Updated SD Card images are availble for download here:
-
-https://github.com/partyrobotics/bartendro/releases/tag/v-2021-05-21
