@@ -12,11 +12,14 @@ Attribution-ShareAlike 3.0 Unported license.
 
 The source tree is laid out as follows:
 
-hardware -- schematics and layouts for the dispenser and router hardware boards
-firmware -- source code (C) for the dispenser and router boards
-scripts  -- scripts to make running the bartendro software easier
-tsb      -- legacy code from our old skool drink bot prototyp Tequila Sunrise Bot
-ui       -- web interface for the bot, written in python.
+* firmware -- source code (C) for the dispenser and router boards
+* scripts  -- scripts to make running the bartendro software easier
+* ui       -- web interface for the bot, written in python.
+
+Archived in https://github.com/partyrobotics/bartendro
+* hardware -- schematics and layouts for the dispenser and router hardware boards
+* tsb      -- legacy code from our old skool drink bot prototyp Tequila Sunrise Bot
+
 
 These various subdirectories may contain more README and COPYING files.
 
