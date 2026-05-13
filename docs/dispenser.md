@@ -330,3 +330,28 @@ following colors/animations are programmed into the stock dispenser:
 * Pulsing purple color animation: Dispenser is currently being cleaned. This mode really
   only has significance in the context of a larger setup where the RPI can execute
   a clean cycle using multiple dispensers.
+
+Dispenser factsheet
+===================
+
+__Archive of https://core-electronics.com.au/bartendro-dispenser-peristaltic-pump-and-controller.html__
+
+Do you need to precisely dispense amounts of liquid for your preferred beverage? If so this could be the pump for you. This is the Bartendro Dispenser from Party Robotics, an ingeniously designed peristaltic pump and controller that can be used to dispense liquids with milliliter accuracy and can be used in a stand alone system or with a router and other pumps for a more complex liquid dispensing system. This peristaltic pump works through positive displacement, two rollers are attached to a single motor that spins around a Norprene® tube pinching it closed to force your beverage liquid to be pumped through. With this method you won’t need to worry about your liquid flowing through any moving parts, it will bypass the need for flow meters, and you will be able to meter the amounts of beverage liquid independent of viscosity and density.
+
+Unlike most peristaltic pumps, the Bartendro Dispenser comes equipped with a controller board (driven by the reliable ATMega168), RJ45 and liquid level sensor connectors, and even a few WS2801 RGB LEDs just to make your drink provider all the more pretty.
+
+The only things that the Bartendro really need to get going is a bit of motor power (minumum of 12V, max 24V), logic power, and serial communication all of which are supplied over the RJ45 jack found on the back of the board. Basically all you need to do is form a serial communication with this board via Arduino, Raspberry Pi, pcDuino, or any other development board of those natures and you will be good to start pouring!
+
+
+Features:
+
+* Max Flow rate: 700mL/ min
+* Minimum Motor Voltage (Vin): 12V
+* Motor Voltage (Vin): 24V
+* Minimum Dispense Volume: 0.5mL if using PWM
+* Repeatability: 1mL or better
+* Current Consumption at 24V: up to 500mA while dispensing
+* Max Vertical Tubing Length: about 10ft
+* Max Length of Serial Connection: 10ft
+* Tube Life: 500 Hours
+* Food Safe
