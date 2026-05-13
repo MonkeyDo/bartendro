@@ -183,7 +183,7 @@ $(document).ready(function()
     {% endif %}
     update_volumes();
 
-    if ({{ go }} && {{ options.show_feeling_lucky or options.turbo_mode }})
+    if ({{ go }} && {{ options.show_feeling_lucky }})
         make_drink({{ drink.id}}, 0);
 });
 

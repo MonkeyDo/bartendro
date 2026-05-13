@@ -94,8 +94,8 @@ $(document).ready(function() {
 {% macro drink_div(id, is_lucky, name, desc, ingredients) -%}
     <div class="span6 menuitem">
        <a class="btn btn-large btn-block drink-btn button-border
-       {% if is_lucky or options.turbo_mode %} btn-success {% else %} btn-warning {% endif %}" style="margin-bottom: 8px;" 
-              type="button" href="/drink/{{ id }}{% if is_lucky or options.turbo_mode %}/go{% endif %}">{{ name }}</a>
+       {% if is_lucky %} btn-success {% else %} btn-warning {% endif %}" style="margin-bottom: 8px;" 
+              type="button" href="/drink/{{ id }}{% if is_lucky %}/go{% endif %}">{{ name }}</a>
        <div class="ingredients">
           {% for ing in ingredients %}
              {{ ing.name }}{% if not loop.last %}, {% endif %}
