@@ -161,7 +161,6 @@ var ing = [
 var start_time;
 var width, height;
 var elapsed;
-var max_x, max_y;
 var drink_to_make;
 var unit_name, unit_name_short;
 
@@ -183,8 +182,6 @@ $(document).ready(function()
         change_alcohol();
     {% endif %}
     update_volumes();
-    max_x = $(".sobriety").width() - $(".clickme_button").width();
-    max_y = $(".sobriety").height() - $(".clickme_button").height();
 
     if ({{ go }} && {{ options.show_feeling_lucky or options.turbo_mode }})
         make_drink({{ drink.id}}, 0);
