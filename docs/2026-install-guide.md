@@ -4,29 +4,28 @@ There are currently **two ways** in which a new user can setup a Bartendro bot u
 
 ### THE LAZY WAY
 
-* get a RPI 4 and an SD card (4GB at least)
-* download the .img file from the [latest releases](https://github.com/MonkeyDo/bartendro/releases)
-* flash the image onto the SD card using software such as Balena Etcher or Rufus
-* insert SD card into RPI slot and connect to the Bartendro controll board / interface
-* power up the RPI and if all goes well a new Wifi network called `bartendro` should appear that you can connect to
-* After connecting a captive-portal should pop-up on your device, if not navigate to 10.0.0.10 using a web-browser
-* Note: If there is no wifi network something went wrong with setup, try again and verify the SD card is well seated in the slot on RP
-* Note: In this release the Wifi Country is set to ES (Spain), if you are in a different country you should run `sudo raspi-config` on the RPI to be able to change it to your current region (affects which bands the wifi uses)
-* 
+* get a Raspberry Pi model 4 and an SD card (4GB at least)
+* download the 2026 version of the .img file from the [latest releases](https://github.com/MonkeyDo/bartendro/releases) - this image has been bundeled with all the necessary dependencies and requirements for the software.
+* flash the image onto the SD card using software such as RPI Imager, Balena Etcher, Rufus or other.
+* insert SD card into RPI slot 
+* connect the RPI to the the Bartendro control board via the GPIO pins
+* connect pumps to the control board using the ethernet cables
+* power up the RPI using the correct powersupply (the control board gets power from the RPI)
+* if all goes well the LEDs on the pumps should turn on and a new Wifi network called `bartendro` should appear 
+* can connect to `bartendro` wifi / the password is `boozemeup`
+* After connecting a captive-portal should pop-up on your device, if not use a web-browser and navigate to 10.0.0.10 or bartendro.local
+* Note: If there is no wifi network something went wrong with setup, verify the SD card is well seated in the slot on RPI and try again.
+* Note: In this release the Wifi Country is set to ES (Spain) within the RPI settings, if you are in a different country you should run `sudo raspi-config` on the RPI to be able to change it to your current region (this affects which bands the wifi uses)
+* Fill up your containers and test the pumps are working 
+* See 2026-user-guide.md for how to use the UI and calibrate bartendro before serving your first robo-cocktail!
+  
 
 ### THE NERD WAY
 
-0. Preparations
-*
+**NOTE: this method has not been verified and uses a script from a personal repo of Rob at [https://github.com/mayhem/bartendro-config](https://github.com/mayhem/bartendro-config)** 
 
 1. Flash
-* Download and write the RaspberryPi OS Lite to an SD Card - Bartendro has been tested on the following releases:
-  * Raspberry Pi OS (Legacy, 32-bit) / Buster-armhf-lite (March 2021) - [Direct download](https://downloads.raspberrypi.org/raspios_lite_armhf/images/raspios_lite_armhf-2021-03-25/2021-03-04-raspios-buster-armhf-lite.zip) 
-  * **TBC:** Raspberry Pi OS (Legacy, 32-bit) / Bullseye-armhf-lite (Aug 2021)
-  * **TBC:** Raspberry Pi OS (Legacy, 32-bit) / Bookworm-armhf-lite (June 2023)
-  * **TBC:** Raspberry Pi OS (Legacy, 32-bit) / trixie-armhf-lite (Aug 2025)
-  * **TBC:** Any 64-bit version of Raspberry Pi OS / `¯\_ (ツ)_/¯  will it run?`
-
+* Download and write the RaspberryPi OS Lite to an SD Card - Bartendro has only been tested as working on the Raspberry Pi OS (Legacy, 32-bit) / Buster-armhf-lite (March 2021) - [Direct download](https://downloads.raspberrypi.org/raspios_lite_armhf/images/raspios_lite_armhf-2021-03-25/2021-03-04-raspios-buster-armhf-lite.zip) 
 
 2. RPI related configuration
 * Insert flashed SD card into RPI slot and boot the device
@@ -48,7 +47,7 @@ There are currently **two ways** in which a new user can setup a Bartendro bot u
 sudo su -
 apt-get update
 apt-get install -y git
-git clone https://github.com/MonkeyDo/bartendro.git
+git clone https://github.com/mayhem/bartendro-config.git
 ```
 
 * This may take a few minutes to download all the files from github - once completed proceed with:
@@ -60,9 +59,7 @@ chmod +x install.sh
 ```
 
 * During the package install step, it will ask two questions about firewall files. Answer both with YES. (TBC)
-* Once done rebooting, log into the RPi with user 'bartendro' and password 'hackme!' (TBC)
-* As an additional step you can also remove the 'pi' user from sysytem by running: `sudo deluser --force --remove-home --remove-all-files pi` - if you do this step you can now you can no longer log in with the standard bartendro user with password "hackme!"
-
-
+* Once done rebooting, log into the RPi with user `bartendro` and password `hackme!` (TBC)
+* As an additional step you can also remove the 'pi' user from sysytem: `sudo deluser --force --remove-home --remove-all-files pi` - note: if you do this step you can now you can no longer log in as `pi`
 
 "In theory that should be it. Your SD card should be ready to rock." - Mayhem
