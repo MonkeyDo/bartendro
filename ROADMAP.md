@@ -39,10 +39,7 @@ Some improvements we want to make to Bartendro to disentangle it from mayhem's H
    * [ ] Raspberry Pi OS (Legacy, 32-bit) / Bullseye-armhf-lite (Aug 2021)
    * [ ] Raspberry Pi OS (Legacy, 32-bit) / Bookworm-armhf-lite (June 2023)
    * [ ] Raspberry Pi OS (Legacy, 32-bit) / trixie-armhf-lite (Aug 2025)
-   * [ ] Any 64-bit version of Raspberry Pi OS
-8. Test if Bartendro works on the new Raspberry Pi 5 platform running Pi OS that works on RPI 4.
-   * [ ] Raspberry Pi OS (Legacy, 32-bit) / Buster-armhf-lite (March 2021)
-   * [ ] Other Pi OS versions validated in testing above
+   * [ ] Any 64-bit version of Raspberry Pi OS / `¯\_ (ツ)_/¯  will it run?`
 9. Better logging within admin UI
    * [ ] write verbose logs to file (rotate logs?)
    * [ ] in admin UI, show logs from file
