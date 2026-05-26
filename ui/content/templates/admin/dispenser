@@ -24,6 +24,14 @@
               </div>
               <div id="dispensers">
                  <form method="POST" action="/admin/save">
+                     <datalist id="bottle-sizes">
+                        <option value="1750">
+                        <option value="1000">
+                        <option value="750">
+                        <option value="700">
+                        <option value="500">
+                        <option value="250">
+                     </datalist>
                      {% for i in range(1, count + 1) %}
                         <div style="padding-bottom: 10px;">
                             {% if states[i-1] == 0 %}
@@ -38,11 +46,25 @@
                             {% endif %}
                             </span>
                             {{ form["dispenser%s" % i](class="form select-field") }}
-                            <a class="btn btn-large btn-success motor-button" id="disp{{ i }}" onclick="toggle_forward({{ i }})">forward</a>
+                            {{ form["actual%s" % i](class="form input-small",
+                                                    style="height: 44px",
+                                                    oninput="modified(%d)" % i) }} of
+                            {{ form["size%s" % i](class="form input-small",
+                                                  style="height: 35px",
+                                                  list="bottle-sizes",
+                                                  oninput="modified()") }}
+                            {{ form["modified%s" % i]() }}
+                            <a class="btn btn-large btn-alert mark-full-button" id="mark_full{{ i }}"
+                               style="vertical-align: top;" onclick="mark_full({{ i }})">
+                               mark full</a>
+                            <a class="btn btn-large btn-success motor-button" id="disp{{ i }}"
+                               style="vertical-align: top;" onclick="toggle_forward({{ i }})">fwd</a>
                             {% if dispenser_version > 2 %}
-                                <a class="btn btn-large btn-success motor-button" id="disp_reverse{{ i }}" onclick="toggle_reverse({{ i }})">reverse</a>
+                                <a class="btn btn-large btn-success motor-button" id="disp_reverse{{ i }}"
+                                   style="vertical-align: top;" onclick="toggle_reverse({{ i }})">rev</a>
                             {% endif %}
-                            <a class="btn btn-large btn-success test-dispense-button" id="test{{ i }}" onclick="test_dispense({{ i }})">dispense {{ options.test_dispense_ml }}ml</a>
+                            <a class="btn btn-large btn-success test-dispense-button" id="test{{ i }}"
+                               style="vertical-align: top;"  onclick="test_dispense({{ i }})">disp. {{ options.test_dispense_ml }}ml</a>
                         </div>
                     {% endfor %}
                     <div class="div-spacer">
@@ -289,6 +311,8 @@ function test_dispense(disp)
 
                  test_running = -1;
                  update_button_states();
+    
+                 $("#actual" + disp).val($("#actual" + disp).val() - {{ options.test_dispense_ml }});
             },
             error: function(xmlhttp, txtStatus, errorThrown)
             {
@@ -384,6 +408,16 @@ function clean(url)
                          { text: "Cancel", click: function() { $( this ).dialog( "close" ); } }
                        ] 
     });
+}
+function mark_full(dispenser)
+{
+    $("#actual" + dispenser).val($("#size" + dispenser).val());
+    $("#modified" + dispenser).val("1")
+}
+function modified(dispenser)
+{
+    console.log("changed " + dispenser)
+    $("#modified" + dispenser).val("1")
 }
 </script>
 {% endblock %}

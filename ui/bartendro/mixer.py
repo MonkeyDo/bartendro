@@ -34,6 +34,9 @@ MAX_DISPENSE = 1000  # ml max dispense per call. Just for sanity. :)
 LIQUID_OUT_THRESHOLD = 75
 LIQUID_LOW_THRESHOLD = 120
 
+CALCULATED_LIQUID_OUT_THRESHOLD = 50
+CALCULATED_LIQUID_LOW_THRESHOLD = 250
+
 LL_OUT = 0
 LL_OK = 1
 LL_LOW = 2
@@ -218,9 +221,6 @@ class Mixer(object):
 
     def _state_pre_shot(self):
 
-        if not app.options.use_liquid_level_sensors:
-            return fsm.EVENT_LL_OK
-
         try:
             ll = self._check_liquid_levels()
         except BartendroLiquidLevelReadError:
@@ -299,8 +299,8 @@ class Mixer(object):
 
                 if booze_id == disp.booze_id:
                     # if we're out of booze, don't consider this drink
-                    if app.options.use_liquid_level_sensors and disp.out == LL_OUT:
-                        raise BartendroCantPourError("Cannot make drink: Dispenser %d is out of booze." % (i+1))
+                    if disp.out == LL_OUT:
+                        raise BartendroCantPourError("Cannot make drink: Dispenser %d is out of booze." % (i + 1))
 
                     found = True
                     ml = self.recipe.data[booze_id]
@@ -321,7 +321,7 @@ class Mixer(object):
             if not found:
                 raise BartendroCantPourError("Cannot make drink. I don't have the required booze: %d" % booze_id)
 
-        self._dispense_recipe(recipe)
+        self._dispense_recipe(dispensers, recipe)
 
         if self.recipe.drink:
             log.info("Made cocktail: %s" % self.recipe.drink.name.name)
@@ -342,8 +342,8 @@ class Mixer(object):
         dispensers = db.session.query(Dispenser).order_by(Dispenser.id).all()
         for i in range(self.disp_count):
             if booze_id == dispensers[i].booze_id:
-                recipe[i] =  ml
-                self._dispense_recipe(recipe, True)
+                recipe[i] = ml
+                self._dispense_recipe(dispensers, recipe, True)
                 break
 
         return fsm.EVENT_POUR_DONE
@@ -469,8 +469,8 @@ class Mixer(object):
         """ Ask the dispense to update their own liquid levels and then fetch the levels
             and set the machine state accordingly. """
 
-        if not app.options.use_liquid_level_sensors: 
-            return LL_OK
+        if not app.options.use_liquid_level_sensors:
+            return self._check_calculated_levels()
 
         ll_state = LL_OK
 
@@ -527,7 +527,51 @@ class Mixer(object):
 
         return ll_state
 
-    def _dispense_recipe(self, recipe, always_fast = False):
+
+    def _check_calculated_levels(self):
+        """ Instead of using liquid level sensors, use calculated levels. """
+
+        ll_state = LL_OK
+
+        dispensers = db.session.query(Dispenser).order_by(Dispenser.id).all()
+
+        clear_cache = False
+        for i, dispenser in enumerate(dispensers):
+            if i >= self.disp_count:
+                break
+
+            if dispenser.actual <= CALCULATED_LIQUID_OUT_THRESHOLD:
+                ll_state = LL_OUT
+                if dispenser.out != LL_OUT:
+                    clear_cache = True
+                dispenser.out = LL_OUT
+
+            elif dispenser.actual <= CALCULATED_LIQUID_LOW_THRESHOLD:
+                if ll_state == LL_OK:
+                    ll_state = LL_LOW
+
+                if dispenser.out == LL_OUT:
+                    clear_cache = True
+                dispenser.out = LL_LOW
+
+            else:
+                if dispenser.out == LL_OUT:
+                    clear_cache = True
+
+                dispenser.out = LL_OK
+
+        db.session.commit()
+
+        if clear_cache:
+            self.mc.delete("top_drinks")
+            self.mc.delete("other_drinks")
+            self.mc.delete("available_drink_list")
+
+        log.info("Calculated levels done. New state: %d" % ll_state)
+
+        return ll_state
+
+    def _dispense_recipe(self, dispensers, recipe, always_fast=False):
 
         active_disp = []
         for disp in recipe:
@@ -565,6 +609,14 @@ class Mixer(object):
                     break
 
                 sleep(.1)
+
+        # Decrement booze levels according to what was just dispensed
+        for dispenser_index in recipe:
+            print(dispensers[dispenser_index].actual)
+            dispensers[dispenser_index].actual -= recipe[dispenser_index]
+            db.session.add(dispensers[dispenser_index])
+        db.session.commit()
+
 
     def _can_make_drink(self, boozes, booze_dict):
         ok = True
