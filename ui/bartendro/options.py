@@ -22,7 +22,6 @@ bartendro_options = {
     'strength_steps': 2,
     'use_shotbot_ui': False,
     'show_feeling_lucky': False,
-    'turbo_mode': False
 }
 
 

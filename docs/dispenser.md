@@ -330,3 +330,67 @@ following colors/animations are programmed into the stock dispenser:
 * Pulsing purple color animation: Dispenser is currently being cleaned. This mode really
   only has significance in the context of a larger setup where the RPI can execute
   a clean cycle using multiple dispensers.
+
+Dispenser factsheet
+===================
+
+__Archive of https://core-electronics.com.au/bartendro-dispenser-peristaltic-pump-and-controller.html__
+
+Do you need to precisely dispense amounts of liquid for your preferred beverage? If so this could be the pump for you. This is the Bartendro Dispenser from Party Robotics, an ingeniously designed peristaltic pump and controller that can be used to dispense liquids with milliliter accuracy and can be used in a stand alone system or with a router and other pumps for a more complex liquid dispensing system. This peristaltic pump works through positive displacement, two rollers are attached to a single motor that spins around a Norprene® tube pinching it closed to force your beverage liquid to be pumped through. With this method you won’t need to worry about your liquid flowing through any moving parts, it will bypass the need for flow meters, and you will be able to meter the amounts of beverage liquid independent of viscosity and density.
+
+Unlike most peristaltic pumps, the Bartendro Dispenser comes equipped with a controller board (driven by the reliable ATMega168), RJ45 and liquid level sensor connectors, and even a few WS2801 RGB LEDs just to make your drink provider all the more pretty.
+
+The only things that the Bartendro really need to get going is a bit of motor power (minumum of 12V, max 24V), logic power, and serial communication all of which are supplied over the RJ45 jack found on the back of the board. Basically all you need to do is form a serial communication with this board via Arduino, Raspberry Pi, pcDuino, or any other development board of those natures and you will be good to start pouring!
+
+
+Features:
+
+* Max Flow rate: 700mL/ min
+* Minimum Motor Voltage (Vin): 12V
+* Motor Voltage (Vin): 24V
+* Minimum Dispense Volume: 0.5mL if using PWM
+* Repeatability: 1mL or better
+* Current Consumption at 24V: up to 500mA while dispensing
+* Max Vertical Tubing Length: about 10ft
+* Max Length of Serial Connection: 10ft
+* Tube Life: 500 Hours
+* Food Safe
+
+
+Dispenser information from archived website
+===================
+
+__Archive of https://web.archive.org/web/20161124220914/http://partyrobotics.com/pages/dispenser__
+
+We believe a superior product is one that gets out of the way, and enables you to get what you want done. Welcome to our favorite workhorse, the Bartendro Dispenser.
+
+It uses magnetic sensors to keep track of fractions of a revolution, which ensures ultra-precision regardless of what's being pumped. With multiple levels of protection in place, there is no need to worry about damaging your dispenser even in extreme conditions.
+
+An optional liquid level sensor helps you determine when something is running low, allowing for uninterrupted operation and bad-drink prevention.
+
+Advanced features such as a manual override button and bi-directional control give you the control and versatility you need for your most demanding applications. Finally, multi-color lighting gives a modern touch while giving you valuable information on the state of the dispenser.
+
+A Dispenser just needs to be supplied with motor power, logic power and serial communication over the RJ-45 connector. We decided on this interface connector because it is common and easy to connect to, these connectors are not compatible with Ethernet and may cause damage if plugged into a networking device. The connection can be hooked up directly to an Arduino or used in conjunction with one of our Router or miniRouter boards. Need application ideas? How about these: A pancake/crepe bot, juice bot, wine blending bot, coffee bot, timely pumping of water or nutrients for a pet, aquarium or tank of any sort, gardening projects, aquaponics, better controlled chemistry/biology/cooking experiments, etc. You will certainly come up with things we never thought of. Please do and tell us about it!
+
+### Includes
+- 1 Bartendro Dispener
+- 5ft Clear Tygon Tubing
+- 2 Compression Nuts
+- (optional) 1 Liquid Sensor Kit
+
+### Specs
+- Max Flow rate: 700mL/ min
+- Minimum Motor Voltage (Vin): 12V Recommended
+- Motor Voltage (Vin): 24V
+- Minimum Dispense Volume: 0.5mL if using PWM
+- Repeatability: 1mL or better
+- Current Consumption at 24V: up to 500mA while dispensing
+- Max Vertical Tubing Length: about 10ft
+- Max Length of Serial Connection: 10ft
+
+### Precautions
+- Not Intended for Medical Use.
+- Tube life (inside the pump) is approximately 500 hours of use.
+- It is not recommended to keep the clear tubing immersed in liquid for extended periods of time.
+- If storing long term, we recommended removing the beige tubing from the pump to extend its life.
+- Please use and drink responsibly.

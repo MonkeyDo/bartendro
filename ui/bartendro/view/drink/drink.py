@@ -44,7 +44,6 @@ def drink(id, go):
     has_sweet = False
     has_tart = False
     has_spicy = False
-    show_sobriety = 0 #drink.id == 46
     for booze in boozes:
         if booze.type == BOOZE_TYPE_ALCOHOL: 
             has_alcohol = True
@@ -66,7 +65,6 @@ def drink(id, go):
                                is_custom=0,
                                show_sweet_tart=show_sweet_tart,
                                show_spicy=show_spicy,
-                               show_sobriety=show_sobriety,
                                can_change_strength=show_strength,
                                go=go,
                                can_make=can_make)
@@ -83,11 +81,6 @@ def drink(id, go):
                            is_custom=1,
                            custom_drink=drink.custom_drink[0],
                            show_sweet_tart=show_sweet_tart,
-                           show_sobriety=show_sobriety,
                            can_change_strength=show_strength,
                            go=go,
                            can_make=can_make)
-
-@app.route('/drink/sobriety')
-def drink_sobriety():
-    return render_template("drink/sobriety")
