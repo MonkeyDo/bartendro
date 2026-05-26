@@ -90,6 +90,28 @@
                 </div>
             {% endif %}
 
+            {% if show_spicy %}
+                <div class="dispense-stack-element">
+                  <table>
+                  <tr>
+                     <td></td>
+                     <td><div class="stack-element-title">spiciness</div></td>
+                     <td></td>
+                  </tr>
+                  <tr>
+                     <td class="margin-td"> <a class="btn btn-large btn-warning drink-plus-minus button-border" onclick="more_spicy()">-</a> </td>
+                     <td class="main-td"><div class="adjust-middle" id="spiciness-text">normal</div></td>
+                     <td class="margin-td"><a class="btn btn-large btn-warning drink-plus-minus button-border" onclick="less_spicy()">+</a> </td>
+                  </tr>
+                  <tr>
+                     <td class="margin-td-label">less spicy</td>
+                     <td></td>
+                     <td class="margin-td-label">more spicy</td>
+                  </tr>
+                  </table>
+                </div>
+            {% endif %}
+
               <table class="dispense-buttons">
               <tr>
                 <td class="dispense-buttons-left"><a class="btn btn-large btn-warning button-border smaller-font" onclick="back()">Back</a></td>
@@ -144,6 +166,7 @@ var max_drink_size = drink_size * max_drink_size_multiplier;
 
 var drink_strength = 0;
 var drink_tartness = 0;
+var drink_spiciness = 0;
 var ing = [ 
    {% for ing in drink.ingredients %}
       { 
@@ -163,6 +186,7 @@ var width, height;
 var elapsed;
 var drink_to_make;
 var unit_name, unit_name_short;
+var has_external = "";
 
 $(document).ready(function() 
 {
@@ -192,16 +216,40 @@ function update_volumes()
     total = 0;
     for(i = 0; i < ing.length; i++)
     {
-        if (ing[i].type == 1) // Alcohol
-            ing[i].newparts = ing[i].parts + (ing[i].parts * .25 * drink_strength);
-        else
-        if (ing[i].type == 2) // tart
+        if (ing[i].type == 1 || ing[i].type == 5) // Alcohol or spicy alcohol
+        {
+            if ({{ 1 if show_spicy else 0 }})
+            {
+                if(ing[i].type == 5) // spicy
+                {
+                    ing[i].newparts = ing[i].parts + (ing[i].parts * .25 * drink_spiciness) + (ing[i].parts * .25 * drink_strength);
+                }
+                else // alcohol
+                {
+                    ing[i].newparts = ing[i].parts + (ing[i].parts * .25 * -drink_spiciness) + (ing[i].parts * .25 * drink_strength)
+                }
+            }
+            else
+            {
+                ing[i].newparts = ing[i].parts + (ing[i].parts * .25 * drink_strength);
+            }
+        }
+        if(ing[i].type == 2) // tart
+        {
             ing[i].newparts = ing[i].parts + (ing[i].parts * .25 * drink_tartness);
-        else
-        if (ing[i].type == 3) // sweet
+        }
+        if(ing[i].type == 3) // sweet
+        {
             ing[i].newparts = ing[i].parts + (ing[i].parts * .25 * -drink_tartness);
-        else
+        }
+        if(ing[i].type == 4 || ing[i].type == 0) // unknown and external
+        {
             ing[i].newparts = ing[i].parts;
+        }
+        if(ing[i].type == 4) // set has_external
+        {   
+            has_external = ing[i].name;
+        }
 
         total += ing[i].newparts;
     } 
@@ -321,6 +369,39 @@ function tartness_sweeter()
     set_tartness_text();
     update_volumes();
 }
+
+function set_spiciness_text()
+{
+    t = "";
+    switch(drink_spiciness)
+    {
+        case -2: t = "even less spicy"; break;
+        case -1: t = "less spicy"; break;
+        case 0: t = "normal"; break;
+        case 1: t = "more spicy"; break;
+        case 2: t = "really spicy!"; break;
+    }
+    $("#spiciness-text").text(t);
+}
+function less_spicy()
+{
+    if (drink_spiciness >= 2)
+        return;
+
+    drink_spiciness++;
+    set_spiciness_text();
+    update_volumes();
+}
+function more_spicy()
+{
+    if (drink_spiciness <= -2)
+        return;
+
+    drink_spiciness--;
+    set_spiciness_text();
+    update_volumes();
+}
+
 function back()
 {
     window.history.back();
@@ -356,7 +437,10 @@ function make_drink(drink, is_taster)
     else
         lb += 'Now serving your'
 
-    lb += '</h1><div class="lb-drink">{{ drink.name.name }}</div>';
+    lb += '</h1><div class="lb-drink">' + `{{ drink.name.name }}` + '</div>';
+    if (has_external)
+        lb += '<div style="padding-top: 5px; font-size: 18pt;">Remember to add ' + has_external + '!</div>';
+
     lb += "</div>";
     $.modal(lb, { 'escClose' : false });
     $.ajax({

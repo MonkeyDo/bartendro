@@ -5,7 +5,7 @@ from bartendro.model.drink import Drink
 from bartendro.model.drink_booze import DrinkBooze
 from bartendro.model.custom_drink import CustomDrink
 from bartendro.model.booze import Booze, booze_types
-from bartendro.model.booze import BOOZE_TYPE_UNKNOWN, BOOZE_TYPE_ALCOHOL, BOOZE_TYPE_TART, BOOZE_TYPE_SWEET
+from bartendro.model.booze import BOOZE_TYPE_UNKNOWN, BOOZE_TYPE_ALCOHOL, BOOZE_TYPE_TART, BOOZE_TYPE_SWEET, BOOZE_TYPE_ALCOHOL_SPICY
 from bartendro.model.booze_group import BoozeGroup
 from bartendro.model.booze_group_booze import BoozeGroupBooze
 from bartendro.model.drink_name import DrinkName
@@ -43,6 +43,7 @@ def drink(id, go):
     has_alcohol = False
     has_sweet = False
     has_tart = False
+    has_spicy = False
     for booze in boozes:
         if booze.type == BOOZE_TYPE_ALCOHOL: 
             has_alcohol = True
@@ -50,9 +51,11 @@ def drink(id, go):
             has_non_alcohol = True
         if booze.type == BOOZE_TYPE_SWEET: has_sweet = True
         if booze.type == BOOZE_TYPE_TART: has_tart = True
+        if booze.type == BOOZE_TYPE_ALCOHOL_SPICY: has_spicy = True
 
     show_sweet_tart = has_sweet and has_tart
     show_strength = has_alcohol and has_non_alcohol
+    show_spicy = has_spicy and has_alcohol
 
     if not custom_drink:
         return render_template("drink/index", 
@@ -61,6 +64,7 @@ def drink(id, go):
                                title=drink.name.name,
                                is_custom=0,
                                show_sweet_tart=show_sweet_tart,
+                               show_spicy=show_spicy,
                                can_change_strength=show_strength,
                                go=go,
                                can_make=can_make)
@@ -70,28 +74,12 @@ def drink(id, go):
     for dispenser in dispensers:
         disp_boozes[dispenser.booze_id] = 1
 
-    booze_group = db.session.query(BoozeGroup) \
-                          .join(DrinkBooze, DrinkBooze.booze_id == BoozeGroup.abstract_booze_id) \
-                          .join(BoozeGroupBooze) \
-                          .filter(Drink.id == id) \
-                          .first()
-
-    filtered = []
-    for bgb in booze_group.booze_group_boozes:
-        try:
-            dummy = disp_boozes[bgb.booze_id]
-            filtered.append(bgb)
-        except KeyError:
-            pass
-
-    booze_group.booze_group_boozes = sorted(filtered, key=lambda booze: booze.sequence ) 
     return render_template("drink/index", 
                            drink=drink, 
                            options=app.options,
                            title=drink.name.name,
                            is_custom=1,
                            custom_drink=drink.custom_drink[0],
-                           booze_group=booze_group,
                            show_sweet_tart=show_sweet_tart,
                            can_change_strength=show_strength,
                            go=go,
