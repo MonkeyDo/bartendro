@@ -25,7 +25,8 @@ circa 2000: Rob meets Pierre, they love good cocktails, prototypes were made
 2026: Rob Kaye passes away, a Monkey and Cat inherited his Bartendro and sought to revive the code: this repo
 
 
-### Press articles on Bartendro
+
+`press articles on Bartendro`
 
 Engadget: Bartendro cocktail mixing robot lands on Kickstarter, wields Raspberry Pi (March 5, 2013) [https://www.engadget.com/2013-03-05-bartendro-raspberry-pi-cocktail-mixing-robot-kickstarter.html](https://www.engadget.com/2013-03-05-bartendro-raspberry-pi-cocktail-mixing-robot-kickstarter.html)
 
@@ -39,7 +40,9 @@ New Atlas:  Raspberry Pi-wielding Bartendro robot mixes drinks for your guests (
 
 [archived] CNET: Bartendro robot mixologist crafts cocktails with Raspberry Pi (March 4, 2013) [https://web.archive.org/web/20131229135530/http://news.cnet.com/8301-17938_105-57572435-1/bartendro-robot-mixologist-crafts-cocktails-with-raspberry-pi/](https://web.archive.org/web/20131229135530/http://news.cnet.com/8301-17938_105-57572435-1/bartendro-robot-mixologist-crafts-cocktails-with-raspberry-pi/)
 
-### videos of Bartendro
+
+
+`videos of Bartendro`
 
 Party Robotics: Bartendro Dispenser (Jul 3, 2013) [https://www.youtube.com/watch?v=IeZ_p7Hm1Ig](https://www.youtube.com/watch?v=IeZ_p7Hm1Ig)
 
