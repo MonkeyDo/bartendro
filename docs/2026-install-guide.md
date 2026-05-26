@@ -2,11 +2,13 @@
 
 ### BEFORE YOU BEGIN
 
-Bartendro requires not just a RPI 4 but many other parts: a custom router board printed by Party Robotics, the dispensers, their individual minirouters, cabling, tubing, etc - the open schematics of these can be found in [the original repo in the /hardware folder.](https://github.com/partyrobotics/bartendro/tree/master/hardware). This is not a project that can run just on a RPI, you must build your own bartendro or procure one from a former kickstart backer or client.
+Bartendro requires not just a RPI 4 but many other parts: a custom router board printed by Party Robotics, the dispensers, their individual minirouters, cabling, tubing, etc - the open schematics of these can be found in [the original repo in the /hardware folder.](https://github.com/partyrobotics/bartendro/tree/master/hardware).
+
+This project requires that you build your own bartendro or procure one from a former kickstart backer or client.
 
 In this revival of the code, we will seek to test it on other platforms and OS versions, but at this moment bartendro only works on a RPI 4 running 32-bit RaspiOS based on Buster - please see ROADMAP.md for updates on our testing.
 
-There are currently **two ways** in which a new user can setup a Bartendro bot using this repository: the lazy way (flashing an image onto an SD card) and the nerd way (SSH or connect a monitor to the RPI and setup Bartendro using the command line). We have only tested the Lazy Way and the image linked below is the updated 2026 version, if you wish to flash the original SD card image please download the file in the [2021-05-21 release from Party Robotics.](https://github.com/partyrobotics/bartendro/releases/tag/v-2021-05-21).
+There are currently **two ways** in which a new user can setup a Bartendro bot using this repository: the lazy way (flashing an image onto an SD card) and the nerd way (SSH or connect a monitor to the RPI and setup Bartendro using the command line). We have only tested the Lazy Way and the image linked below is the updated 2026 version, if you wish to flash the original SD card image please download the file in the [2021-05-21 release from Party Robotics.](https://github.com/partyrobotics/bartendro/releases/tag/v-2021-05-21)
 
 ### THE LAZY WAY
 
