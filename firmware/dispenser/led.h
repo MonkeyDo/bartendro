@@ -7,6 +7,7 @@ typedef struct
 } color_t;
 
 void set_led_rgb(uint8_t red, uint8_t green, uint8_t blue);
+void swap_green_blue(void);
 void led_pattern_init(int8_t pattern);
 void led_pattern_next(uint32_t t, color_t *c);
 

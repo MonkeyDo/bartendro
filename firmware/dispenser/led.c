@@ -24,6 +24,8 @@
 #define CLOCK_PORT           PORTD
 #define DATA_PORT            PORTD
 
+uint8_t _swap_green_blue = 0;
+
 typedef struct
 {
     color_t color;
@@ -35,6 +37,11 @@ typedef struct
     color_segment_t *segments;
     uint8_t          num;
 } pattern_t;
+
+void swap_green_blue(void)
+{
+    _swap_green_blue = 1;
+}
 
 #define LED_IDLE_NUM_SEGMENTS 3
 static color_segment_t idle_segments[LED_IDLE_NUM_SEGMENTS] =
@@ -190,9 +197,18 @@ void set_led_color(color_t *color)
 void set_led_rgb(uint8_t red, uint8_t green, uint8_t blue)
 {
     uint8_t led[3];
-    led[0] = blue;
     led[1] = red;
-    led[2] = green;
+
+    if (_swap_green_blue)
+    {
+        led[2] = green;
+        led[0] = blue;
+    }
+    else
+    {
+        led[0] = green;
+        led[2] = blue;
+    }
     set_led_bytes(led);
     delay_us(COLOR_LATCH_DURATION);
 }
