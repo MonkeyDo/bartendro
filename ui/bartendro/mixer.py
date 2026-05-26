@@ -1,20 +1,21 @@
-# -*- coding: utf-8 -*-
 import logging
 import sys
 import traceback
 from time import sleep, time
 from threading import Thread
 from flask import Flask, current_app
-from flask.ext.sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import SQLAlchemy
 import memcache
 from sqlalchemy.orm import mapper, relationship, backref
+from sqlalchemy import text
 from bartendro import db, app
 from bartendro import fsm
 from bartendro.clean import CleanCycle
 from bartendro.pourcomplete import PourCompleteDelay
 from bartendro.router.driver import MOTOR_DIRECTION_FORWARD
 from bartendro.model.drink import Drink
-from bartendro.model.booze import BOOZE_TYPE_EXTERNAL
+from bartendro.model.booze import BOOZE_TYPE_EXTERNAL, Booze
+from bartendro.model.booze_group import BoozeGroup
 from bartendro.model.dispenser import Dispenser
 from bartendro.model.drink_log import DrinkLog
 from bartendro.model.shot_log import ShotLog
@@ -22,32 +23,36 @@ from bartendro.global_lock import BartendroLock
 from bartendro.error import BartendroBusyError, BartendroBrokenError, BartendroCantPourError, BartendroCurrentSenseError
 
 TICKS_PER_ML = 2.78
-CALIBRATE_ML = 60 
+CALIBRATE_ML = 60
 CALIBRATION_TICKS = TICKS_PER_ML * CALIBRATE_ML
 
 FULL_SPEED = 255
 HALF_SPEED = 166
-SLOW_DISPENSE_THRESHOLD = 20 # ml
-MAX_DISPENSE = 1000 # ml max dispense per call. Just for sanity. :)
+SLOW_DISPENSE_THRESHOLD = 20  # ml
+MAX_DISPENSE = 1000  # ml max dispense per call. Just for sanity. :)
 
-LIQUID_OUT_THRESHOLD   = 75
-LIQUID_LOW_THRESHOLD   = 120 
+LIQUID_OUT_THRESHOLD = 75
+LIQUID_LOW_THRESHOLD = 120
 
-LL_OUT     = 0
-LL_OK      = 1
-LL_LOW     = 2
+LL_OUT = 0
+LL_OK = 1
+LL_LOW = 2
 
 log = logging.getLogger('bartendro')
+
 
 class BartendroLiquidLevelReadError(Exception):
     pass
 
+
 class Recipe(object):
     ''' Define everything related to dispensing one or more liquids at the same time '''
+
     def __init__(self):
         self.data = {}
-        self.drink = None   # Use for dispensing drinks
-        self.booze  = None  # Use for dispensing single shots of one booze
+        self.drink = None  # Use for dispensing drinks
+        self.booze = None  # Use for dispensing single shots of one booze
+
 
 class Mixer(object):
     '''The mixer object is the heart of Bartendro. This is where the state of the bot
@@ -67,7 +72,7 @@ class Mixer(object):
 
     def dispense_shot(self, dispenser, ml):
         r = Recipe()
-        r.data = { dispenser.booze.id : ml }
+        r.data = {dispenser.booze.id: ml}
         r.booze = dispenser.booze
         self.recipe = r
 
@@ -80,7 +85,7 @@ class Mixer(object):
 
     def dispense_ml(self, dispenser, ml):
         r = Recipe()
-        r.data = { dispenser.booze.id : ml }
+        r.data = {dispenser.booze.id: ml}
         r.booze = dispenser.booze
         self.recipe = r
 
@@ -97,8 +102,8 @@ class Mixer(object):
             self.do_event(fsm.EVENT_MAKE_DRINK)
             if drink and drink.id:
                 size = 0
-                for k in recipe.keys():
-                    size += recipe[k] 
+                for k in list(recipe.keys()):
+                    size += recipe[k]
                 t = int(time())
                 dlog = DrinkLog(drink.id, t, size)
                 db.session.add(dlog)
@@ -106,14 +111,14 @@ class Mixer(object):
 
     def do_event(self, event):
         cur_state = app.globals.get_state()
-    
+
         while True:
             next_state = None
             for t_state, t_event, t_next_state in fsm.transition_table:
                 if t_state == cur_state and event == t_event:
                     next_state = t_next_state
                     break
-            
+
             if not next_state:
                 log.error("Current state %d, event %d. No next state." % (cur_state, event))
                 raise BartendroBrokenError("Bartendro is unable to pour drinks right now. Sorry.")
@@ -150,19 +155,19 @@ class Mixer(object):
                     log.error("Current state: %d, event %d. Can't find next state." % (cur_state, event))
                     raise BartendroBrokenError("Internal error. Bartendro has had one too many.")
 
-            except BartendroBrokenError, err:
+            except BartendroBrokenError as err:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 #traceback.print_tb(exc_traceback)
                 self._state_error()
                 app.globals.set_state(fsm.STATE_ERROR)
                 raise
 
-            except BartendroCantPourError, err:
+            except BartendroCantPourError as err:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 #traceback.print_tb(exc_traceback)
                 raise
-                
-            except BartendroCurrentSenseError, err:
+
+            except BartendroCurrentSenseError as err:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 #traceback.print_tb(exc_traceback)
                 raise BartendroBrokenError(err)
@@ -221,7 +226,7 @@ class Mixer(object):
         except BartendroLiquidLevelReadError:
             raise BartendroBrokenError("Failed to read liquid levels")
 
-        booze_id = self.recipe.data.keys()[0]
+        booze_id = list(self.recipe.data.keys())[0]
         dispensers = db.session.query(Dispenser).order_by(Dispenser.id).all()
         for i, disp in enumerate(dispensers):
             if disp.booze_id == booze_id:
@@ -235,7 +240,7 @@ class Mixer(object):
                     else:
                         app.globals.set_state(fsm.STATE_HARD_OUT)
 
-                    raise BartendroCantPourError("Cannot make drink: Dispenser %d is out of booze." % (i+1))
+                    raise BartendroCantPourError("Cannot make drink: Dispenser %d is out of booze." % (i + 1))
                 break
 
         return fsm.EVENT_LL_OK
@@ -274,8 +279,8 @@ class Mixer(object):
         recipe = {}
         size = 0
         log_lines = {}
-        sql = "SELECT id FROM booze WHERE type = :d"
-        ext_booze_list = db.session.query("id") \
+        sql = text("SELECT id FROM booze WHERE type = :d")
+        ext_booze_list = db.session.query(Booze.id) \
                         .from_statement(sql) \
                         .params(d=BOOZE_TYPE_EXTERNAL).all()
         ext_boozes = {}
@@ -289,9 +294,8 @@ class Mixer(object):
                 continue
 
             found = False
-            for i in xrange(self.disp_count):
+            for i in range(self.disp_count):
                 disp = dispensers[i]
-
 
                 if booze_id == disp.booze_id:
                     # if we're out of booze, don't consider this drink
@@ -305,12 +309,13 @@ class Mixer(object):
                         continue
 
                     if ml > MAX_DISPENSE:
-                        raise BartendroCantPourError("Cannot make drink. Invalid dispense quantity: %d ml. (Max %d ml)" % (ml, MAX_DISPENSE))
+                        raise BartendroCantPourError("Cannot make drink. Invalid dispense quantity: %d ml. (Max %d ml)" %
+                                                     (ml, MAX_DISPENSE))
 
-                    recipe[i] =  ml
+                    recipe[i] = ml
                     size += ml
                     log_lines[i] = "  %-2d %-32s %d ml" % (i, "%s (%d)" % (disp.booze.name, disp.booze.id), ml)
-                    self.driver.set_motor_direction(i, MOTOR_DIRECTION_FORWARD);
+                    self.driver.set_motor_direction(i, MOTOR_DIRECTION_FORWARD)
                     continue
 
             if not found:
@@ -330,12 +335,12 @@ class Mixer(object):
 
     def _state_test_dispense(self):
 
-        booze_id = self.recipe.data.keys()[0]
+        booze_id = list(self.recipe.data.keys())[0]
         ml = self.recipe.data[booze_id]
 
         recipe = {}
         dispensers = db.session.query(Dispenser).order_by(Dispenser.id).all()
-        for i in xrange(self.disp_count):
+        for i in range(self.disp_count):
             if booze_id == dispensers[i].booze_id:
                 recipe[i] =  ml
                 self._dispense_recipe(recipe, True)
@@ -365,7 +370,7 @@ class Mixer(object):
 
     def liquid_level_test(self, dispenser, threshold):
         if app.globals.get_state() == fsm.STATE_ERROR:
-            return 
+            return
         if not app.options.use_liquid_level_sensors: return
 
         log.info("Start liquid level test: (disp %s thres: %d)" % (dispenser, threshold))
@@ -375,10 +380,10 @@ class Mixer(object):
         sleep(.01)
 
         level = self.driver.get_liquid_level(dispenser)
-	log.info("initial reading: %d" % level)
+        log.info("initial reading: %d" % level)
         if level <= threshold:
-	    log.info("liquid is out before starting: %d" % level)
-	    return
+            log.info("liquid is out before starting: %d" % level)
+            return
 
         last = -1
         self.driver.start(dispenser)
@@ -389,12 +394,12 @@ class Mixer(object):
             sleep(.01)
             level = self.driver.get_liquid_level(dispenser)
             if level != last:
-                 log.info("  %d" % level)
+                log.info("  %d" % level)
             last = level
 
         self.driver.stop(dispenser)
         log.info("Stopped at level: %d" % level)
-        sleep(.1);
+        sleep(.1)
         level = self.driver.get_liquid_level(dispenser)
         log.info("motor stopped at level: %d" % level)
 
@@ -403,31 +408,27 @@ class Mixer(object):
             return []
 
         can_make = self.mc.get("available_drink_list")
-        if can_make: 
+        if can_make:
             return can_make
 
-        add_boozes = db.session.query("abstract_booze_id") \
-                            .from_statement("""SELECT bg.abstract_booze_id 
+        add_boozes = db.session.query(BoozeGroup.abstract_booze_id) \
+                       .from_statement(text("""SELECT bg.abstract_booze_id 
                                                  FROM booze_group bg 
                                                 WHERE id 
                                                    IN (SELECT distinct(bgb.booze_group_id) 
                                                          FROM booze_group_booze bgb, dispenser 
-                                                        WHERE bgb.booze_id = dispenser.booze_id)""")
+                                                        WHERE bgb.booze_id = dispenser.booze_id)"""))
 
-        if app.options.use_liquid_level_sensors: 
-            sql = "SELECT booze_id FROM dispenser WHERE out == 1 or out == 2 ORDER BY id LIMIT :d"
-        else:
-            sql = "SELECT booze_id FROM dispenser ORDER BY id LIMIT :d"
-
-        boozes = db.session.query("booze_id") \
-                        .from_statement(sql) \
+        sql = "SELECT booze_id FROM dispenser WHERE out == 1 or out == 2 ORDER BY id LIMIT :d"
+        boozes = db.session.query(Booze.id) \
+                        .from_statement(text(sql)) \
                         .params(d=self.disp_count).all()
         boozes.extend(add_boozes)
 
         # Load whatever external boozes we have and add them to this list
         sql = "SELECT id FROM booze WHERE type = :d"
-        ext_boozes = db.session.query("id") \
-                        .from_statement(sql) \
+        ext_boozes = db.session.query(Booze.id) \
+                        .from_statement(text(sql)) \
                         .params(d=BOOZE_TYPE_EXTERNAL).all()
         boozes.extend(ext_boozes)
 
@@ -435,8 +436,12 @@ class Mixer(object):
         for booze_id in boozes:
             booze_dict[booze_id[0]] = 1
 
-        drinks = db.session.query("drink_id", "booze_id") \
-                        .from_statement("SELECT d.id AS drink_id, db.booze_id AS booze_id FROM drink d, drink_booze db WHERE db.drink_id = d.id ORDER BY d.id, db.booze_id") \
+        drinks = db.session.query(Drink.id, Booze.id) \
+                        .from_statement(text("""SELECT d.id AS drink_id
+                                                     , db.booze_id AS booze_id
+                                                  FROM drink d, drink_booze db
+                                                 WHERE db.drink_id = d.id
+                                              ORDER BY d.id, db.booze_id""")) \
                         .all()
         last_drink = -1
         boozes = []
@@ -444,13 +449,13 @@ class Mixer(object):
         for drink_id, booze_id in drinks:
             if last_drink < 0: last_drink = drink_id
             if drink_id != last_drink:
-                if self._can_make_drink(boozes, booze_dict): 
+                if self._can_make_drink(boozes, booze_dict):
                     can_make.append(last_drink)
                 boozes = []
             boozes.append(booze_id)
             last_drink = drink_id
 
-        if self._can_make_drink(boozes, booze_dict): 
+        if self._can_make_drink(boozes, booze_dict):
             can_make.append(last_drink)
 
         self.mc.set("available_drink_list", can_make)
@@ -469,7 +474,7 @@ class Mixer(object):
 
         ll_state = LL_OK
 
-        log.info("mixer.check_liquid_levels: check levels");
+        log.info("mixer.check_liquid_levels: check levels")
         # step 1: ask the dispensers to update their liquid levels
         if not self.driver.update_liquid_levels():
             raise BartendroLiquidLevelReadError("Failed to update liquid levels")
@@ -487,7 +492,7 @@ class Mixer(object):
 
             level = self.driver.get_liquid_level(i)
             if level < 0:
-                raise BartendroLiquidLevelReadError("Failed to read liquid levels from dispenser %d" % (i+1))
+                raise BartendroLiquidLevelReadError("Failed to read liquid levels from dispenser %d" % (i + 1))
 
             log.info("dispenser %d level: %d (stored: %d)" % (i, level, dispenser.out))
 
@@ -530,13 +535,14 @@ class Mixer(object):
                 continue
             ticks = int(recipe[disp] * TICKS_PER_ML)
             if recipe[disp] < SLOW_DISPENSE_THRESHOLD and not always_fast:
-                speed = HALF_SPEED 
+                speed = HALF_SPEED
             else:
-                speed = FULL_SPEED 
+                speed = FULL_SPEED
 
-            self.driver.set_motor_direction(disp, MOTOR_DIRECTION_FORWARD);
+            self.driver.set_motor_direction(disp, MOTOR_DIRECTION_FORWARD)
             if not self.driver.dispense_ticks(disp, ticks, speed):
-                raise BartendroBrokenError("Dispense error. Dispense %d ticks, speed %d on dispenser %d failed." % (ticks, speed, disp + 1))
+                raise BartendroBrokenError("Dispense error. Dispense %d ticks, speed %d on dispenser %d failed." %
+                                           (ticks, speed, disp + 1))
 
             active_disp.append(disp)
             sleep(.01)
@@ -555,8 +561,8 @@ class Mixer(object):
                 if over_current:
                     raise BartendroCurrentSenseError("One of the pumps did not operate properly. Your drink is broken. Sorry. :(")
 
-                if is_dispensing == 0: 
-                    break 
+                if is_dispensing == 0:
+                    break
 
                 sleep(.1)
 
@@ -568,4 +574,3 @@ class Mixer(object):
             except KeyError:
                 ok = False
         return ok
-

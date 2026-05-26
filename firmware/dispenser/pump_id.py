@@ -30,7 +30,7 @@ def get_pump_id():
     except IOError:
         pass
     except ValueError:
-        print "Warning: Cannot read saved pump id. Try removing file %s " % PUMP_ID_FILE
+        print("Warning: Cannot read saved pump id. Try removing file %s " % PUMP_ID_FILE)
 
     if id_file:
         id_file.close()
@@ -39,7 +39,7 @@ def get_pump_id():
         id_file = open(PUMP_ID_FILE, "w")
         id_file.write("%d\n" % id)
     except IOError:
-        print "Failed to save pump id to %s" % PUMP_ID_FILE
+        print("Failed to save pump id to %s" % PUMP_ID_FILE)
 
     if id_file:
         id_file.close()
@@ -57,14 +57,14 @@ else:
     id = args.id
 
 try:
-    f = open(args.file, "a")
+    f = open(args.file, "ab")
     f.write(struct.pack("B", id))
     f.close()
-except IOError, e:
-    print "Error: ", e
+except IOError as err:
+    print("Error: ", err)
     sys.exit(-1)
 
 #cmd = "sudo avrdude -p m168 -P usb -c avrispmkII -U eeprom:w:%s:r -B 1.0" % sys.argv[1]
 #subprocess.check_output(cmd)
-print "Pump id %x written to %s" % (id, sys.argv[1])
+print("Pump id %x written to %s" % (id, sys.argv[1]))
 sys.exit(0)

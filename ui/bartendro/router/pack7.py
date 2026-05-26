@@ -1,8 +1,6 @@
-#!/usr/bin/env python
+bits = [''.join(['01'[i&(1<<b)>0] for b in range(7,-1,-1)]) for i in range(256)]
 
-bits = [''.join(['01'[i&(1<<b)>0] for b in xrange(7,-1,-1)]) for i in xrange(256)]
-
-def pack_7bit(data):
+def pack_7bit(data: bytearray):
     buffer = 0
     bitcount = 0
     out = ""
@@ -39,7 +37,7 @@ def unpack_7bit(data):
             buffer &= (1 << (bitcount - 8)) - 1
             bitcount -= 8
 
-        if len(data) == 0: break
+        if len(data) == 0:
+            break
 
     return out
-

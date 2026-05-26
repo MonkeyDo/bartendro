@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 from bartendro import db
 from sqlalchemy.orm import mapper, relationship
 from sqlalchemy import Table, Column, Integer, String, MetaData, Unicode, UnicodeText, UniqueConstraint, Text, Index
@@ -32,10 +31,11 @@ class Booze(db.Model):
 
     # add unique constraint for name
     UniqueConstraint('name', name='booze_name_undx')
- 
+
     query = db.session.query_property()
-    def __init__(self, name = u'', brand = u'', desc = u'', abv = 0, type = 0, out = 0, data = None):
-        if data: 
+
+    def __init__(self, name='', brand='', desc='', abv=0, type=0, out=0, data=None):
+        if data:
             self.update(data)
             return
         self.name = name
@@ -57,5 +57,6 @@ class Booze(db.Model):
 
     def __repr__(self):
         return "<Booze('%s','%s')>" % (self.id, self.name)
+
 
 Index('booze_name_ndx', Booze.name)
