@@ -20,9 +20,7 @@ log = logging.getLogger('bartendro')
 try:
     import smbus
     smbus_missing = 0
-except ImportError, e:
-    if e.message != 'No module named smbus':
-        raise
+except ModuleNotFoundError as e:
     smbus_missing = 1
 
 
@@ -50,7 +48,7 @@ class DispenserSelect(object):
 
     def reset(self):
         if self.software_only: return
-        self._write_byte_with_retry(ROUTER_ADDRESS, ROUTER_CMD_RESET)
+        #self._write_byte_with_retry(ROUTER_ADDRESS, ROUTER_CMD_RESET)
         sleep(.15)
 
     def select(self, dispenser):
