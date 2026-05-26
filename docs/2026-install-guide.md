@@ -2,7 +2,7 @@
 
 ### BEFORE YOU BEGIN
 
-Bartendro requires not just a RPI 4 but many other parts: a custom router board printed by Party Robotics, the dispensers, their individual minirouters, cabling, tubing, etc - the open schematics of these can be found in [the original repo in the /hardware folder.](https://github.com/partyrobotics/bartendro/tree/master/hardware).
+Bartendro requires not just a RPI 4 but many other parts: a custom router board printed by Party Robotics, the dispensers, their individual minirouters, cabling, tubing, etc - the open schematics of these can be found in [the original repo in the /hardware folder.](https://github.com/partyrobotics/bartendro/tree/master/hardware)
 
 This project requires that you build your own bartendro or procure one from a former kickstart backer or client.
 
