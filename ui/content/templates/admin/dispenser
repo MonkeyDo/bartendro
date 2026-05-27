@@ -17,7 +17,7 @@
                       disabled.
                    {% endif %}
                    <br/>
-                   {{ num_drinks }} drinks can be made.
+                   <a href="#available-drinks">{{ num_drinks }} drinks can be made.</a>
                    </p>
                    <div style="">
                    </div>
@@ -38,11 +38,26 @@
                             {% endif %}
                             </span>
                             {{ form["dispenser%s" % i](class="form select-field") }}
-                            <a class="btn btn-large btn-success motor-button" id="disp{{ i }}" onclick="toggle_forward({{ i }})">forward</a>
+                            {{ form["actual%s" % i](class="form input-small",
+                                                    style="height: 44px",
+                                                    type="text",
+                                                    oninput="modified(%d)" % i) }} of
+                            {{ form["size%s" % i](class="form input-small",
+                                                  style="height: 35px",
+                                                  type="text",
+                                                  oninput="modified()") }}
+                            {{ form["modified%s" % i]() }}
+                            <a class="btn btn-large btn-alert mark-full-button" id="mark_full{{ i }}"
+                               style="vertical-align: top;" onclick="mark_full({{ i }})">
+                               mark full</a>
+                            <a class="btn btn-large btn-success motor-button" id="disp{{ i }}"
+                               style="vertical-align: top;" onclick="toggle_forward({{ i }})">fwd</a>
                             {% if dispenser_version > 2 %}
-                                <a class="btn btn-large btn-success motor-button" id="disp_reverse{{ i }}" onclick="toggle_reverse({{ i }})">reverse</a>
+                                <a class="btn btn-large btn-success motor-button" id="disp_reverse{{ i }}"
+                                   style="vertical-align: top;" onclick="toggle_reverse({{ i }})">rev</a>
                             {% endif %}
-                            <a class="btn btn-large btn-success test-dispense-button" id="test{{ i }}" onclick="test_dispense({{ i }})">dispense {{ options.test_dispense_ml }}ml</a>
+                            <a class="btn btn-large btn-success test-dispense-button" id="test{{ i }}"
+                               style="vertical-align: top;"  onclick="test_dispense({{ i }})">disp. {{ options.test_dispense_ml }}ml</a>
                         </div>
                     {% endfor %}
                     <div class="div-spacer">
@@ -72,6 +87,34 @@
                       {% endif %}
                     </div>
                    </form>
+                </div>
+                <div id="available-drinks" style="margin-top: 30px;">
+                    <h3 style="display: inline-block;">Available Drinks</h3>
+                    <a class="btn btn-primary" id="save-drinks" style="float: right;" disabled="disabled" onclick="save_drink_states()">Save Changes</a>
+                    {% if avail_drinks %}
+                    <table class="table table-striped table-condensed table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Drink Name</th>
+                                <th>Show Drink</th>
+                                <th>Is Essential</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for drink in avail_drinks %}
+                            <tr>
+                                <td>{{ drink.name.name }}</td>
+                                <td><input type="checkbox" id="available-{{ drink.id }}" data-drink-id="{{ drink.id }}" onchange="drink_changed()" {% if drink.available %}checked{% endif %}></td>
+                                <td><input type="checkbox" id="popular-{{ drink.id }}" data-drink-id="{{ drink.id }}" onchange="drink_changed()" {% if drink.popular %}checked{% endif %}></td>
+                                <td><a href="/admin/drink/{{ drink.id }}">Edit drink</a></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <p>No drinks can be made with the current dispenser configuration.</p>
+                    {% endif %}
                 </div>
            </div>
         </div>
@@ -275,7 +318,7 @@ function test_dispense(disp)
             url: "/ws/dispenser/" + disp + "/test" ,
             success: function(html)
             {
-                 $("#test" + disp).text('dispense {{ options.test_dispense_ml }}ml');
+                 $("#test" + disp).text('disp. {{ options.test_dispense_ml }}ml');
                  if (html == "busy")
                      set_message("Already testing a dispense. Chill!");
                  else
@@ -289,6 +332,8 @@ function test_dispense(disp)
 
                  test_running = -1;
                  update_button_states();
+    
+                 $("#actual" + disp).val($("#actual" + disp).val() - {{ options.test_dispense_ml }});
             },
             error: function(xmlhttp, txtStatus, errorThrown)
             {
@@ -383,6 +428,50 @@ function clean(url)
                          } },
                          { text: "Cancel", click: function() { $( this ).dialog( "close" ); } }
                        ] 
+    });
+}
+function mark_full(dispenser)
+{
+    $("#actual" + dispenser).val($("#size" + dispenser).val());
+    $("#modified" + dispenser).val("1")
+}
+function modified(dispenser)
+{
+    console.log("changed " + dispenser)
+    $("#modified" + dispenser).val("1")
+}
+
+var drinks_modified = false;
+
+function drink_changed()
+{
+    drinks_modified = true;
+    $("#save-drinks").removeAttr("disabled");
+}
+
+function save_drink_states()
+{
+    var drinks = [];
+    $("#available-drinks input[type='checkbox'][id^='available-']").each(function() {
+        var drink_id = $(this).data('drink-id');
+        var available = $(this).is(':checked');
+        var popular = $("#popular-" + drink_id).is(':checked');
+        drinks.push({id: drink_id, available: available, popular: popular});
+    });
+    
+    $.ajax({
+        url: "/admin/save_drink_states",
+        type: "POST",
+        contentType: "application/json",
+        data: JSON.stringify({drinks: drinks}),
+        success: function(response) {
+            set_message("Drink states saved.");
+            drinks_modified = false;
+            $("#save-drinks").attr("disabled", "disabled");
+        },
+        error: function(xhr, status, error) {
+            set_message("Failed to save drink states: " + error);
+        }
     });
 }
 </script>

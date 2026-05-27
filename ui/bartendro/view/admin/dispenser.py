@@ -1,10 +1,9 @@
-# -*- coding: utf-8 -*-
 from sqlalchemy import func, asc
 import memcache
 from bartendro import app, db
 from flask import Flask, request, redirect, render_template
-from flask.ext.login import login_required
-from wtforms import Form, SelectField, IntegerField, validators
+from flask_login import login_required
+from wtforms import Form, SelectField, IntegerField, validators, HiddenField
 from bartendro.model.drink import Drink
 from bartendro.model.booze import Booze
 from bartendro.model.dispenser import Dispenser
@@ -13,6 +12,7 @@ from bartendro.mixer import CALIBRATE_ML
 from operator import itemgetter
 from bartendro import fsm
 from bartendro.mixer import LL_OK
+
 
 @app.route('/admin')
 @login_required
@@ -38,18 +38,23 @@ def dispenser():
 
     kwargs = {}
     fields = []
-    for i in xrange(1, 17):
+    for i in range(1, 17):
         dis = "dispenser%d" % i
         actual = "actual%d" % i
-        setattr(F, dis, SelectField("%d" % i, choices=sorted_booze_list)) 
-        setattr(F, actual, IntegerField(actual, [validators.NumberRange(min=1, max=100)]))
-        kwargs[dis] = "1" # string of selected booze
-        fields.append((dis, actual))
+        bottle_size = "size%d" % i
+        modified = "modified%d" % i
+        setattr(F, dis, SelectField("%d" % i, choices=sorted_booze_list))
+        setattr(F, actual, IntegerField(actual, [validators.NumberRange(min=1, max=10000)]))
+        setattr(F, bottle_size, IntegerField(bottle_size, [validators.NumberRange(min=1, max=10000)]))
+        setattr(F, modified, HiddenField(default="0"))
+        kwargs[dis] = "1"  # string of selected booze
+        fields.append((dis, actual, bottle_size))
 
     form = F(**kwargs)
     for i, dispenser in enumerate(dispensers):
         form["dispenser%d" % (i + 1)].data = "%d" % booze_list[dispenser.booze_id - 1][0]
         form["actual%d" % (i + 1)].data = dispenser.actual
+        form["size%d" % (i + 1)].data = dispenser.bottle_size
 
     bstate = app.globals.get_state()
     error = False
@@ -69,20 +74,27 @@ def dispenser():
     else:
         state = "Bartendro is in bad state: %d" % bstate
 
-    avail_drinks = app.mixer.get_available_drink_list()
-    return render_template("admin/dispenser", 
+    avail_drink_ids = app.mixer.get_available_drink_list()
+    avail_drinks = []
+    if avail_drink_ids:
+        avail_drinks = db.session.query(Drink).filter(Drink.id.in_(avail_drink_ids)).all()
+        avail_drinks = sorted(avail_drinks, key=lambda d: d.name.name)
+    return render_template("admin/dispenser",
                            title="Dispensers",
-                           calibrate_ml=CALIBRATE_ML, 
-                           form=form, count=count, 
-                           fields=fields, 
+                           calibrate_ml=CALIBRATE_ML,
+                           form=form,
+                           count=count,
+                           fields=fields,
                            saved=saved,
                            state=state,
                            error=error,
                            updated=updated,
                            num_drinks=len(avail_drinks),
+                           avail_drinks=avail_drinks,
                            options=app.options,
                            dispenser_version=driver.dispenser_version,
                            states=states)
+
 
 @app.route('/admin/save', methods=['POST'])
 @login_required
@@ -96,7 +108,9 @@ def save():
         for dispenser in dispensers:
             try:
                 dispenser.booze_id = request.form['dispenser%d' % dispenser.id]
-                #dispenser.actual = request.form['actual%d' % dispenser.id]
+                if request.form['modified%d' % dispenser.id] != "0":
+                    dispenser.bottle_size = request.form['size%d' % dispenser.id]
+                    dispenser.actual = request.form['actual%d' % dispenser.id]
             except KeyError:
                 continue
         db.session.commit()
@@ -108,3 +122,26 @@ def save():
 
     app.mixer.check_levels()
     return redirect('/admin?saved=1')
+
+
+@app.route('/admin/save_drink_states', methods=['POST'])
+@login_required
+def save_drink_states():
+    data = request.get_json()
+    if not data or 'drinks' not in data:
+        return 'Invalid data', 400
+    
+    for drink_data in data['drinks']:
+        drink = db.session.query(Drink).filter(Drink.id == drink_data['id']).first()
+        if drink:
+            drink.available = drink_data['available']
+            drink.popular = drink_data['popular']
+    
+    db.session.commit()
+    
+    mc = app.mc
+    mc.delete("top_drinks")
+    mc.delete("other_drinks")
+    mc.delete("available_drink_list")
+    
+    return 'OK'
