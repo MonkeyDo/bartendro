@@ -17,8 +17,8 @@ Some improvements we want to make to Bartendro to disentangle it from mayhem's H
      * [ ] Advanced: Disable console on serial port, enable serial port
      * [ ] Advanced: Enable I2C
 2. Fix annoying bug where drinks will be poured directly from the drinks menu, without waiting for the confirmation screen
-   * [ ] Bug found to be called 'Turbo Mode' in the code, it exhibits itself when an admin changes settings in the backend and saves, when the backend refreshes it automatically ticks as active this 'turbo mode'
-   * [ ] Monkey to identify flask code that breaks here and propose a patch
+   * [x] Bug found to be called 'Turbo Mode' in the code, it exhibits itself when an admin changes settings in the backend and saves, when the backend refreshes it automatically ticks as active this 'turbo mode'
+   * [x] Monkey has removed Turbo Mode and Sobriety Test, making a new Release in this repo
 3. Better logging within admin UI
    * [ ] write verbose logs to file (rotate logs?)
    * [ ] in admin UI, show logs from file
