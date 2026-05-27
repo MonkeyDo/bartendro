@@ -36,10 +36,10 @@ Some improvements we want to make to Bartendro to disentangle it from mayhem's H
    * [ ] include: all files from the repo
    * [ ] include: information in release page regrading username & passwd + wifi SSID & password of AP
 7. Strech goal: Test if Bartendro works for other versions of Raspberry Pi OS
-   * [ ] Raspberry Pi OS (Legacy, 32-bit) / Bullseye-armhf-lite (Aug 2021)
    * [ ] Raspberry Pi OS (Legacy, 32-bit) / Bookworm-armhf-lite (June 2023)
    * [ ] Raspberry Pi OS (Legacy, 32-bit) / trixie-armhf-lite (Aug 2025)
    * [ ] Any 64-bit version of Raspberry Pi OS / `¯\_ (ツ)_/¯  will it run?`
+   * [ ] Test if it runs on a RPI 5 (why not?)
 8. Investigate user_button.py
     * [x] ref: https://github.com/MonkeyDo/bartendro/commits/master/scripts/user_button.py
     * [x] We discovered it was the code for a custom button that Rob had installed on his personal bot, which allowed for the `bartendro_server.py` to be restarted manually by pressing a button. At somepoint in time Rob replaced this with an LED that indicates whether the liquid levels were low within the backend of the program.
