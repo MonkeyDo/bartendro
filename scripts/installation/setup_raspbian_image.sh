@@ -33,8 +33,8 @@ DHCP_RANGE_END="${DHCP_RANGE_END:-10.0.0.250}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOCAL_SOURCE_DIR="${SCRIPT_DIR}/bartendro"
-LOCAL_AP_SCRIPT="${SCRIPT_DIR}/setup_bartendro_local_ap.sh"
-LOCAL_CHECK_SCRIPT="${SCRIPT_DIR}/check_bartendro_setup.sh"
+LOCAL_AP_SCRIPT="${LOCAL_SOURCE_DIR}/scripts/setup_bartendro_local_ap.sh"
+LOCAL_CHECK_SCRIPT="${LOCAL_SOURCE_DIR}/scripts/check_bartendro_setup.sh"
 START_AT_STEP="${START_AT_STEP:-}"
 ONLY_STEP="${ONLY_STEP:-}"
 FORCE_WIZARD=0
