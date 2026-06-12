@@ -10,17 +10,49 @@
 #apt-get install -y --no-install-recommends hostapd isc-dhcp-server iptables-persistent dnsmasq \
 #    nginx uwsgi uwsgi-plugin-python python-dev python-smbus git-core python-pip python-setuptools python-wheel
 
-# install the network/wifi setup files
+# make sudoers file and setting NOPASSWD
 echo "%sudo ALL=(ALL:ALL) NOPASSWD:ALL" | sudo install -m 440 /dev/stdin /etc/sudoers.d/90-bartendro   
-cp -v files/dhcpd.conf /etc/dhcp/dhcpd.conf
+
+# creating in dhcpd.conf
+sudo install -m 0440 /dev/stdin /etc/dhcp/dhcpd.conf <<'EOF'
+default-lease-time 600;
+max-lease-time 3600;
+ddns-update-style none;
+authoritative;
+subnet 10.0.0.0 netmask 255.255.255.0 {
+    range 10.0.0.10 10.0.0.200;
+    option broadcast-address 10.0.0.255;
+    option routers 10.0.0.1;
+    default-lease-time 600;
+    max-lease-time 3600;
+    option domain-name "local";
+    option domain-name-servers 10.0.0.1;
+}
+EOF
+
+# Setting up ISC DHCP server
 cp -v files/isc-dhcp-server /etc/default/isc-dhcp-server
+
+# modifying interfraces.d (NOTE interfaces.d is a directory... maybe a missing / in script)
 cp -v files/wlan0 /etc/network/interfaces.d
+
+# modifying hostapd config
 cp -v files/hostapd.conf /etc/hostapd/hostapd.conf
+
+# modifying hostapd files
 cp -v files/hostapd /etc/hostapd
+
+# modifying dnsmasq files
 cp -v files/dnsmasq.conf /etc/dnsmasq.conf
-cp -v files/rc.local /etc/rc.local
-cp -v files/50x.html /usr/share/nginx/html
+
+# adding line to dnsmasq
 echo "DNSMASQ_EXCEPT=lo" >> /etc/default/dnsmasq
+
+# modifying rc.local files
+cp -v files/rc.local /etc/rc.local
+
+# modifying nginx error page
+cp -v files/50x.html /usr/share/nginx/html
 
 # MOVED TO PREPARE.SH
 # setup the firewall
