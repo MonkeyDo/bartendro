@@ -31,10 +31,20 @@ AP_CIDR="${AP_CIDR:-10.0.0.1/24}"
 DHCP_RANGE_START="${DHCP_RANGE_START:-10.0.0.100}"
 DHCP_RANGE_END="${DHCP_RANGE_END:-10.0.0.250}"
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-LOCAL_SOURCE_DIR="${SCRIPT_DIR}/bartendro"
-LOCAL_AP_SCRIPT="${LOCAL_SOURCE_DIR}/scripts/setup_bartendro_local_ap.sh"
-LOCAL_CHECK_SCRIPT="${LOCAL_SOURCE_DIR}/scripts/check_bartendro_setup.sh"
+SCRIPT_PATH="${BASH_SOURCE[0]:-}"
+if [ -n "${BARTENDRO_LOCAL_SOURCE_DIR:-}" ]; then
+    LOCAL_SOURCE_DIR="${BARTENDRO_LOCAL_SOURCE_DIR}"
+elif [ -n "${SCRIPT_PATH}" ] && [ -f "${SCRIPT_PATH}" ]; then
+    SCRIPT_DIR="$(cd "$(dirname "${SCRIPT_PATH}")" && pwd)"
+    LOCAL_SOURCE_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+else
+    # When run as `curl .../setup_raspbian_image.sh | sudo bash`, there is no
+    # local checkout next to the script. install_source_tree will clone
+    # BARTENDRO_REPO_URL instead.
+    LOCAL_SOURCE_DIR=""
+fi
+LOCAL_AP_SCRIPT="${BARTENDRO_APP_DIR}/scripts/installation/setup_bartendro_local_ap.sh"
+LOCAL_CHECK_SCRIPT="${BARTENDRO_APP_DIR}/scripts/installation/check_bartendro_setup.sh"
 START_AT_STEP="${START_AT_STEP:-}"
 ONLY_STEP="${ONLY_STEP:-}"
 FORCE_WIZARD=0
