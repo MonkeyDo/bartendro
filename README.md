@@ -31,7 +31,7 @@ This project requires that you build your own bartendro or procure one from a fo
 
 Code has been tested as working on
 ==================================
-* [x] Raspberry Pi Os (Legacy, 32-bit) / Buster-armhf-lite (June 2019)
+* [x] Raspberry Pi Os (Legacy, 32-bit) / Buster-armhf-lite (June 2019) / Note: only by using SD card image produced in 2021, Buster no longer supported by Raspbian
 * [x] Raspberry Pi OS (Legacy, 32-bit) / Bullseye-armhf-lite (Aug 2021)
 * [ ] Raspberry Pi OS (Legacy, 32-bit) / Bookworm-armhf-lite (June 2023)
 * [ ] Raspberry Pi OS (Legacy, 32-bit) / trixie-armhf-lite (Aug 2025)
