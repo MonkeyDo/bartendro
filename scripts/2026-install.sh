@@ -11,7 +11,7 @@
 #    nginx uwsgi uwsgi-plugin-python python-dev python-smbus git-core python-pip python-setuptools python-wheel
 
 # install the network/wifi setup files
-install -m 440 files/sudoers /etc/sudoers.d/90-bartendro
+echo "%sudo ALL=(ALL:ALL) NOPASSWD:ALL" | sudo install -m 440 /dev/stdin /etc/sudoers.d/90-bartendro   
 cp -v files/dhcpd.conf /etc/dhcp/dhcpd.conf
 cp -v files/isc-dhcp-server /etc/default/isc-dhcp-server
 cp -v files/wlan0 /etc/network/interfaces.d
