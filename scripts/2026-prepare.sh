@@ -3,6 +3,11 @@
 
 #!/bin/bash
 
+# NEW: automated backups of the files we modify in this and install.sh
+sudo cp /etc/wpa_supplicant/wpa_supplicant.conf /etc/wpa_supplicant/wpa_supplicant.backup
+sudo cp /etc/iptables/rules.v4 /etc/iptables/rules.v4.backup
+sudo cp /etc/dhcpcd.conf /etc/dhcpcd.conf.backup
+
 # package getting
 apt-get update
 apt-get install -y --no-install-recommends hostapd isc-dhcp-server iptables-persistent dnsmasq \
