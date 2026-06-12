@@ -3,9 +3,7 @@ Original README contents
 
 Programs for the various systems of the Bartendro drink dispensing robot.
 
-Created by [Pierre Michael](https://github.com/pmich
-) and [Robert Kaye](https://github.com/mayhem)
-Copyright (c) Party Robotics 2010-2013
+Created by [Pierre Michael](https://github.com/pmich) and [Robert Kaye](https://github.com/mayhem) ~ Copyright (c) Party Robotics 2010-2013
 
 All of the source code in this repository is licensed under the GNU Public License 2.0.
 The hardware schematic and layouts are licensed using the Creative Commons 
@@ -37,8 +35,8 @@ Code has been tested as working on
 * [x] Raspberry Pi OS (Legacy, 32-bit) / Bullseye-armhf-lite (Aug 2021)
 * [ ] Raspberry Pi OS (Legacy, 32-bit) / Bookworm-armhf-lite (June 2023)
 * [ ] Raspberry Pi OS (Legacy, 32-bit) / trixie-armhf-lite (Aug 2025)
-* [ ] Any 64-bit version of Raspberry Pi OS / `¯\_ (ツ)_/¯  will it run?`
-
+* [ ] Test any arm64-lite version of Raspberry Pi OS / `¯\_ (ツ)_/¯  will it run?`
+| here is a link to the [official distro image archive for Raspiberry Pi OS](https://downloads.raspberrypi.com/raspios_lite_armhf/images/)
 
 Releases
 ==================================
@@ -52,11 +50,12 @@ Getting started
 ==================================
 
 - Read the history of Bartendro: [https://github.com/MonkeyDo/bartendro/blob/master/docs/history.md](https://github.com/MonkeyDo/bartendro/blob/master/docs/history.md)
+- Read our 'start here' guide: [https://github.com/MonkeyDo/bartendro/blob/master/docs/2026-start-here.md](https://github.com/MonkeyDo/bartendro/blob/master/docs/2026-start-here.md)
 - Read the updated docs: [https://github.com/MonkeyDo/bartendro/tree/master/docs](https://github.com/MonkeyDo/bartendro/tree/master/docs)
 - Read the install docs: [https://github.com/MonkeyDo/bartendro/blob/master/docs/2026-install-guide.md](https://github.com/MonkeyDo/bartendro/blob/master/docs/2026-install-guide.md)
 - Get hold of or build your own Bartendro (see Requirements above)
 - flash one of the Releases listed above onto a SD card with at least 4GB of memory
-- Follow the user guide once you have the hardware setup and working: [https://github.com/MonkeyDo/bartendro/blob/master/docs/2026-user-guide.md](https://github.com/MonkeyDo/bartendro/blob/master/docs/2026-user-guide.md)
+- Follow the full user guide once you have the hardware setup and working: [https://github.com/MonkeyDo/bartendro/blob/master/docs/2026-user-guide.md](https://github.com/MonkeyDo/bartendro/blob/master/docs/2026-user-guide.md)
 
 
 Links to relevant code repositories
