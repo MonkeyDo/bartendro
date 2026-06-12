@@ -14,6 +14,7 @@ iptables -A FORWARD -i wlan0 -o eth0 -j ACCEPT
 iptables -t nat -S
 sh -c "iptables-save > /etc/iptables/rules.v4"
 
+# PROPOSAL: removing all make a user called bartendro part of the proces.... have everything point to /home/pi which is the default RPI OS user
 # create the bartendro user 
 sudo adduser -gecos 'Bartendro' --disabled-password bartendro
 sudo adduser bartendro sudo
@@ -29,6 +30,7 @@ fi
 # Install the needed python modules
 pip install -r /home/bartendro/bartendro/ui/requirements.txt
 
+# PROPOSAL: removing all make a user called bartendro part of the proces.... have everything point to /home/pi which is the default RPI OS user
 # change the ownership of everything in the bartendro user
 chown -R bartendro:bartendro /home/bartendro
 
