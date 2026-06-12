@@ -30,8 +30,6 @@ There are currently **two ways** in which a new user can setup a Bartendro bot u
 
 ### THE NERD WAY
 
-**NOTE: this method has not been verified and uses a script from a personal repo of Rob at [https://github.com/mayhem/bartendro-config](https://github.com/mayhem/bartendro-config)** 
-
 1. Flash
 * Download and write the RaspberryPi OS Lite to an SD Card - Bartendro has only been tested as working on the Raspberry Pi OS (Legacy, 32-bit) / Buster-armhf-lite (March 2021) - [Direct download](https://downloads.raspberrypi.org/raspios_lite_armhf/images/raspios_lite_armhf-2021-03-25/2021-03-04-raspios-buster-armhf-lite.zip) 
 
@@ -41,38 +39,45 @@ There are currently **two ways** in which a new user can setup a Bartendro bot u
 * Boot the RPi and then log in as user 'pi' with password 'raspberry'
 * From the command line run `sudo raspi-config`
   * Localisation Options: Set the Wifi Country and setup Wifi to a valid network (option L4)
-  * System Options: Set the hostname to bartendro (option S3)
   * System Options: Connect to your wifi here if you are not using a Ethernet cable (option S1)
   * Interface Options: Enable SSH (Option I2)
-  * Interface Options: Disable console on serial port (first choice: NO), but do enable serial port (second choice: YES) (Option I6)
-  * Interface Options: Enable I2C (Option I5)
-  * Advanced Options: Expand the filesystem (option A1)
+  * (Optional) Interface Options: Disable console on serial port (first choice: NO), but do enable serial port (second choice: YES) (Option I6)
+  * (Optional) Interface Options: Enable I2C (Option I5)
+  * (Optional) Advanced Options: Expand the filesystem (option A1)
   * navigate to 'Finish' & select YES when asked if raspberry pi should reboot (IMPORTANT)
 
-3. Running prepare.sh scripts
-*  TBC
-
-3. Running install,sh scripts
+3. Running the online setup script
 * Once the RPI reboots fully use another device to `ssh pi@bartendro.local` (or use monitor and keyboard attached to the RPI)
-* Log in again (pi/raspberry), connect to the RPI to the internet via wifi or the ethernet port, and follow these steps:
+* Log in again (pi/raspberry) and run:
 
 ```
-sudo su -
-apt-get update
-apt-get install -y git
-git clone https://github.com/mayhem/bartendro-config.git
+curl -fsSL https://raw.githubusercontent.com/MonkeyDo/bartendro/main/scripts/installation/setup_raspbian_image.sh | sudo bash
 ```
 
-* This may take a few minutes to download all the files from github - once completed proceed with:
-  
+* The setup wizard will ask for the Bartendro user, password, Wi-Fi access point name/password, and network settings. Press Enter to accept each default.
+* This step must run while the Raspberry Pi still has internet access. It installs system packages, creates the `bartendro` user, clones this repository, installs Python dependencies, and stages the offline access point scripts.
+* If setup is interrupted, rerun the same command or resume from a named step. For example:
+
 ```
-cd scripts
-chmod +x install.sh
-./install.sh
+curl -fsSL https://raw.githubusercontent.com/MonkeyDo/bartendro/main/scripts/installation/setup_raspbian_image.sh | sudo bash -s -- --start-at python
 ```
 
-* During the package install step, it will ask two questions about firewall files. Answer both with YES. (TBC)
-* Once done rebooting, log into the RPi with user `bartendro` and password `hackme!` (TBC)
+4. Switch to Bartendro access point mode
+* After the online setup completes, run:
+
+```
+sudo setup-bartendro-local-ap
+```
+
+* Verify the finished setup with:
+
+```
+sudo check-bartendro-setup
+```
+(Scripts are in the folder `/usr/local/sbin/`)
+
+* Reboot for good luck. The Pi should create a Wi-Fi network using the SSID/password selected in the wizard, and the app should be available at `http://bartendro.local/`.
+* Once done rebooting, you can log into the RPi with the user/password selected in the wizard (bartendro).
 * As an additional step you can also remove the 'pi' user from sysytem: `sudo deluser --force --remove-home --remove-all-files pi` - note: if you do this step you can now you can no longer log in as `pi`
 
 "In theory that should be it. Your SD card should be ready to rock." - Mayhem
