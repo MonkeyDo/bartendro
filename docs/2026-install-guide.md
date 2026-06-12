@@ -43,9 +43,9 @@ There are currently **two ways** in which a new user can setup a Bartendro bot u
   * Localisation Options: Set the Wifi Country and setup Wifi to a valid network (option L4)
   * System Options: Set the hostname to bartendro (option S3)
   * System Options: Connect to your wifi here if you are not using a Ethernet cable (option S1)
-  * Interface Options: Enable SSH (Option P2)
-  * Interface Options: Disable console on serial port (first choice: NO), but do enable serial port (second choice: YES) (Option P6)
-  * Interface Options: Enable I2C (Option P5)
+  * Interface Options: Enable SSH (Option I2)
+  * Interface Options: Disable console on serial port (first choice: NO), but do enable serial port (second choice: YES) (Option I6)
+  * Interface Options: Enable I2C (Option I5)
   * Advanced Options: Expand the filesystem (option A1)
   * navigate to 'Finish' & select YES when asked if raspberry pi should reboot (IMPORTANT)
 
