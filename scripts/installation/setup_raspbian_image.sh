@@ -48,6 +48,7 @@ LOCAL_CHECK_SCRIPT="${BARTENDRO_APP_DIR}/scripts/installation/check_bartendro_se
 START_AT_STEP="${START_AT_STEP:-}"
 ONLY_STEP="${ONLY_STEP:-}"
 FORCE_WIZARD=0
+ALLOW_NON_RASPBIAN="${ALLOW_NON_RASPBIAN:-0}"
 
 log() {
     printf '\n==> %s\n' "$*"
@@ -60,6 +61,33 @@ require_root() {
     fi
 }
 
+require_raspbian() {
+    if [ "${ALLOW_NON_RASPBIAN}" = "1" ]; then
+        log "Skipping Raspberry Pi OS/Raspbian guard because ALLOW_NON_RASPBIAN=1"
+        return
+    fi
+
+    if [ ! -r /etc/os-release ]; then
+        printf 'Cannot verify OS: /etc/os-release is missing.\n' >&2
+        printf 'This setup modifies users, packages, services, and networking. Aborting.\n' >&2
+        printf 'Set ALLOW_NON_RASPBIAN=1 only if you are intentionally testing.\n' >&2
+        exit 1
+    fi
+
+    os_release="$(cat /etc/os-release)"
+    if printf '%s\n' "${os_release}" | grep -Eiq '^(ID|ID_LIKE)=.*(raspbian|debian)' \
+       && printf '%s\n' "${os_release}" | grep -Eiq '^(NAME|PRETTY_NAME)=.*(Raspberry Pi OS|Raspbian)'; then
+        return
+    fi
+
+    printf 'This setup must be run on Raspberry Pi OS/Raspbian.\n\n' >&2
+    printf 'Detected /etc/os-release:\n' >&2
+    sed -n '1,12p' /etc/os-release >&2
+    printf '\nAborting before making system changes.\n' >&2
+    printf 'Set ALLOW_NON_RASPBIAN=1 only if you are intentionally testing on another OS.\n' >&2
+    exit 1
+}
+
 usage() {
     cat <<EOF
 Usage: sudo $0 [options]
@@ -68,6 +96,7 @@ Options:
   --reconfigure          Run the setup wizard even if ${BARTENDRO_CONFIG_FILE} exists.
   --start-at STEP        Start at STEP and continue through the remaining steps.
   --only STEP            Run only STEP.
+  --allow-non-raspbian   Bypass the Raspberry Pi OS/Raspbian safety guard.
   --help                Show this help.
 
 Steps:
@@ -92,6 +121,9 @@ parse_args() {
         case "$1" in
             --reconfigure)
                 FORCE_WIZARD=1
+                ;;
+            --allow-non-raspbian)
+                ALLOW_NON_RASPBIAN=1
                 ;;
             --start-at)
                 shift
@@ -477,6 +509,7 @@ stage_offline_script() {
 main() {
     parse_args "$@"
     validate_args
+    require_raspbian
     require_root
     load_setup_defaults_for_resume
     run_step wizard run_setup_wizard
