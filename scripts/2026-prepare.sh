@@ -8,11 +8,13 @@ sudo cp /etc/wpa_supplicant/wpa_supplicant.conf /etc/wpa_supplicant/wpa_supplica
 sudo cp /etc/iptables/rules.v4 /etc/iptables/rules.v4.backup
 sudo cp /etc/dhcpcd.conf /etc/dhcpcd.conf.backup
 
+# NOTE: packages to fix: python-smbus and other Python2 that have to go to Python3
 # package getting
 apt-get update
 apt-get install -y --no-install-recommends hostapd isc-dhcp-server iptables-persistent dnsmasq \
-    nginx uwsgi uwsgi-plugin-python python-dev python-smbus git-core python-pip python-setuptools python-wheel
+    nginx uwsgi uwsgi-plugin-python python-dev python-smbus git python-pip python-setuptools python-wheel
 apt-get upgrade
+ 
 
 # firewall setting
 iptables -A FORWARD -i eth0 -o wlan0 -m state --state  RELATED,ESTABLISHED -j ACCEPT
