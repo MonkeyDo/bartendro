@@ -58,11 +58,16 @@ validate_inputs() {
         cp "${BARTENDRO_UI_DIR}/bartendro.db.default" "${BARTENDRO_UI_DIR}/bartendro.db"
     fi
 
-    install -d -m 0755 "${BARTENDRO_UI_DIR}/logs"
+    # The Flask app reads/writes bartendro.db and, during database upload,
+    # replaces that file and stores the old copy in .db-backups. SQLite may also
+    # create journal/WAL sidecar files next to the database, so the UI directory
+    # must be writable by the service user. Ownership gives bartendro that write
+    # access; 0755 keeps the path traversable for services such as nginx.
+    install -d -m 0755 "${BARTENDRO_UI_DIR}/logs" "${BARTENDRO_UI_DIR}/.db-backups"
     chown -R "${BARTENDRO_USER}:${BARTENDRO_USER}" "${BARTENDRO_HOME}"
     chmod 0755 "${BARTENDRO_HOME}" "${BARTENDRO_APP_DIR}" "${BARTENDRO_UI_DIR}"
     chmod 0644 "${BARTENDRO_UI_DIR}/bartendro.db"
-    chmod 0755 "${BARTENDRO_UI_DIR}/logs"
+    chmod 0755 "${BARTENDRO_UI_DIR}/logs" "${BARTENDRO_UI_DIR}/.db-backups"
 }
 
 write_runtime_defaults() {
