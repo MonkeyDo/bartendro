@@ -9,7 +9,7 @@ sudo cp /etc/iptables/rules.v4 /etc/iptables/rules.v4.backup
 sudo cp /etc/dhcpcd.conf /etc/dhcpcd.conf.backup
 
 # package getting
-apt-get update
+apt-get update && apt-get upgrade
 apt-get install -y --no-install-recommends hostapd isc-dhcp-server iptables-persistent dnsmasq \
     nginx uwsgi uwsgi-plugin-python python-dev python-smbus git-core python-pip python-setuptools python-wheel
 
