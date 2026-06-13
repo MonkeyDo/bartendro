@@ -10,10 +10,11 @@ import json
 
 
 @app.route('/ws/booze/match/<str>')
-def ws_booze(request, str):
-    str = str + "%%"
-    boozes = db.session.query("id", "name").from_statement("SELECT id, name FROM booze WHERE name LIKE :s").params(s=str).all()
-    return jsonify(boozes)
+def ws_booze(str):
+    boozes = db.session.query(Booze.id, Booze.name)\
+        .filter(Booze.name.like(str + "%"))\
+        .all()
+    return jsonify([{'id': booze.id, 'name': booze.name} for booze in boozes])
 
 
 def check_booze_references(booze_id):

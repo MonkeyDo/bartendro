@@ -2,7 +2,7 @@ import time
 from bartendro import app, db
 from flask import Flask, request, render_template
 from flask_login import login_required
-from sqlalchemy import text
+from sqlalchemy import text, column
 from bartendro.model.drink import Drink
 from bartendro.model.booze import Booze
 from bartendro.model.booze_group import BoozeGroup
@@ -34,21 +34,21 @@ def report_view(begin, end):
         except ValueError:
             return render_template("admin/report", options=app.options, error="Invalid end date")
 
-    total_number = db.session.query("number")\
+    total_number = db.session.query(column("number"))\
                  .from_statement(text("""SELECT count(*) as number
                                            FROM drink_log 
                                           WHERE drink_log.time >= :begin 
                                        AND drink_log.time <= :end"""))\
                  .params(begin=begindate, end=enddate).first()
 
-    total_volume = db.session.query("volume")\
+    total_volume = db.session.query(column("volume"))\
                  .from_statement(text("""SELECT sum(drink_log.size) as volume 
                                            FROM drink_log 
                                           WHERE drink_log.time >= :begin 
                                             AND drink_log.time <= :end"""))\
                  .params(begin=begindate, end=enddate).first()
 
-    top_drinks = db.session.query("name", "number", "volume")\
+    top_drinks = db.session.query(column("name"), column("number"), column("volume"))\
                  .from_statement(text("""SELECT drink_name.name,
                                                 count(drink_log.drink_id) AS number, 
                                                 sum(drink_log.size) AS volume 

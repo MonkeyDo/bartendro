@@ -1,6 +1,6 @@
 import time
 from bartendro import app, db
-from sqlalchemy import desc, text
+from sqlalchemy import desc, text, column
 from flask import Flask, request, render_template
 from flask_login import login_required
 from bartendro.model.drink import Drink
@@ -42,21 +42,21 @@ def trending_drinks_detail(hours):
     else:
         begindate = 0
 
-    total_number = db.session.query(text("number"))\
+    total_number = db.session.query(column("number"))\
                  .from_statement(text("""SELECT count(*) as number
                                            FROM drink_log 
                                           WHERE drink_log.time >= :begin 
                                             AND drink_log.time <= :end"""))\
                  .params(begin=begindate, end=enddate).first()
 
-    total_volume = db.session.query(text("volume"))\
+    total_volume = db.session.query(column("volume"))\
                  .from_statement(text("""SELECT sum(drink_log.size) as volume 
                                            FROM drink_log 
                                           WHERE drink_log.time >= :begin 
                                             AND drink_log.time <= :end"""))\
                  .params(begin=begindate, end=enddate).first()
 
-    top_drinks = db.session.query(text("id"), text("name"), text("number"), text("volume"))\
+    top_drinks = db.session.query(column("id"), column("name"), column("number"), column("volume"))\
                  .from_statement(text("""SELECT drink.id, 
                                                 drink_name.name,
                                                 count(drink_log.drink_id) AS number, 

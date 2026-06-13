@@ -79,7 +79,7 @@ def ws_upload():
     try:
         con = sqlite3.connect(file_name)
         cur = con.cursor()
-        cur.execute(text("SELECT * FROM dispenser"))
+        cur.execute("SELECT * FROM dispenser")
     except sqlite3.DatabaseError:
         os.unlink(file_name)
         raise BadRequest
