@@ -22,6 +22,7 @@ RPI_CPU_IDS_FOR_TTYAMA0 = [
 ]
 DEFAULT_SERIAL_DEVICE = "/dev/ttyS0"
 LEGACY_SERIAL_DEVICE = "/dev/ttyAMA0"
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 
 def determine_serial_device():
@@ -109,7 +110,7 @@ try:
 except KeyError:
     app.software_only = 0
 
-if not os.path.exists("bartendro.db"):
+if not os.path.exists(os.path.join(BASE_DIR, "bartendro.db")):
     print("bartendro.db file not found. Please copy bartendro.db.default to ")
     print("bartendro.db in order to provide Bartendro with a starting database.")
     sys.exit(-1)
