@@ -17,7 +17,6 @@ def debug_index():
         b_log.close()
         lines = lines[-LOG_LINES_TO_SHOW:]
         bartendro_log = "".join(lines)
-        print(bartendro_log)
     except IOError as e:
         print("file open fail")
         bartendro_log = "%s" % e
