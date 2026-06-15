@@ -10,6 +10,8 @@ from bartendro.form.booze import BoozeForm
 from bartendro.error import BartendroBusyError, BartendroBrokenError, BartendroCantPourError, BartendroCurrentSenseError
 
 log = logging.getLogger('bartendro')
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
+DB_FILE = os.path.join(BASE_DIR, "bartendro.db")
 
 
 @app.route('/ws/reset')
@@ -58,11 +60,12 @@ def ws_check_levels():
 def ws_download_db():
 
     # close the connection to the database to flush anything that might still be in a cache somewhere
-    db.session.bind.dispose()
+    db.session.remove()
+    db.engine.dispose()
 
     # Now read the database into memory
     try:
-        fh = open("bartendro.db", "r")
+        fh = open(DB_FILE, "r")
         db_data = fh.read()
         fh.close()
     except IOError as e:

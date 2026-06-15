@@ -14,6 +14,15 @@ from bartendro.model.option import Option
 from bartendro.options import bartendro_options
 
 DB_BACKUP_DIR = '.db-backups'
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
+DB_FILE = os.path.join(BASE_DIR, "bartendro.db")
+DB_BACKUP_DIR = os.path.join(BASE_DIR, DB_BACKUP_DIR)
+
+
+def close_database_connections():
+    # Flask-SQLAlchemy 3 does not expose a bound engine through db.session.bind.
+    db.session.remove()
+    db.engine.dispose()
 
 
 @app.route('/ws/options', methods=["POST", "GET"])
@@ -76,6 +85,7 @@ def ws_upload():
     except IOError:
         raise InternalServerError
 
+    con = None
     try:
         con = sqlite3.connect(file_name)
         cur = con.cursor()
@@ -83,6 +93,9 @@ def ws_upload():
     except sqlite3.DatabaseError:
         os.unlink(file_name)
         raise BadRequest
+    finally:
+        if con:
+            con.close()
 
     return json.dumps('{ "file_name": "%s" }' % file_name)
 
@@ -101,15 +114,15 @@ def ws_upload_confirm():
             return json.dumps({'error': "Cannot create backup dir"})
 
     # close the connection to the database to flush anything that might still be in a cache somewhere
-    db.session.bind.dispose()
+    close_database_connections()
 
     try:
-        shutil.move("bartendro.db", os.path.join(DB_BACKUP_DIR, "%d.db" % int(time())))
+        shutil.move(DB_FILE, os.path.join(DB_BACKUP_DIR, "%d.db" % int(time())))
     except OSError:
         return json.dumps({'error': "Cannot backup old database"})
 
     try:
-        shutil.move(file_name, "bartendro.db")
+        shutil.move(file_name, DB_FILE)
     except OSError:
         return json.dumps({'error': "Cannot backup old database"})
 
