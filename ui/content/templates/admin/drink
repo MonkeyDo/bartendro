@@ -70,6 +70,13 @@
         <div style="float: right; padding-top: 10px;">
         <a href="/admin/drink" class="btn btn-large">add new drink</a>
         </div>
+        <form class="form-search" method="get" action="/admin/drink" style="float: right; padding-top: 12px; margin-right: 8px;">
+            <div class="input-append">
+                <input type="search" id="drink-list-search" name="q" class="search-query input-large" style="width: 210px; padding: 11px 14px; font-size: 17.5px;" 
+                       placeholder="Search by drink or ingredient" value="{{ drink_search|e }}"></input>
+                <button type="submit" class="btn btn-large">search</button>
+            </div>
+        </form>
         <h2>Drink list</h2>
 	<table class="table table-striped table-bordered" id="drinks-table">
             {% for d in drinks %}
@@ -108,6 +115,10 @@ $(document).ready(function()
     $("#status-message").hide();
     add_booze();
     update_taster_button();
+    $("#drink-list-search").keyup(function() {
+        if (!$(this).val())
+            window.location = "/admin/drink";
+    });
     {% if edit_drink_id %}
     edit({{ edit_drink_id }});
     {% endif %}
@@ -233,6 +244,10 @@ function save()
             {
                 load_form(json);
                 set_message(drink['name'] + " has been saved.");
+                if ($("#drink-list-search").val()) {
+                    window.location = "/admin/drink?q=" + encodeURIComponent($("#drink-list-search").val());
+                    return;
+                }
                 update_drink_list(drink['id'], json['id'], drink['name']);
             },
             error: function(xhr, txtStatus, errorThrown)
