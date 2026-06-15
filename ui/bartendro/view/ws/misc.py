@@ -31,6 +31,10 @@ def ws_reset():
 @login_required
 def ws_test_chain():
     driver = app.driver
+    if driver.count() == 0:
+        log.error("No dispensers discovered; cannot test dispenser chain")
+        return "No dispensers discovered."
+
     for disp in range(driver.count()):
         if not driver.ping(disp):
             log.error("Dispense %d failed ping" % (disp + 1))

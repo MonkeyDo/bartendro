@@ -16,6 +16,9 @@ DISPENSER_DEFAULT_VERSION_SOFTWARE_ONLY = 3
 
 BAUD_RATE = 9600
 DEFAULT_TIMEOUT = 2  # in seconds
+DISCOVERY_TIMEOUT = 0.05
+DISCOVERY_SELECT_SETTLE = 0.05
+DISCOVERY_ZERO_RETRIES = 3
 
 MAX_DISPENSERS = 15
 SHOT_TICKS = 20
@@ -165,10 +168,12 @@ class RouterDriver(object):
 
         log.info("Discovering dispensers")
         self.num_dispensers = 0
+        self.set_timeout(DISCOVERY_TIMEOUT)
         for port in range(MAX_DISPENSERS):
             self._log_startup("port %d:" % port)
             self.dispenser_select.select(port)
-            sleep(.01)
+            sleep(DISCOVERY_SELECT_SETTLE)
+            zero_reads = 0
             while True:
                 self.ser.flushInput()
                 self.ser.write(bytearray((63, 63, 63)))
@@ -182,7 +187,13 @@ class RouterDriver(object):
                         continue
 
                     if data[0] == 0:
-                        self._log_startup("  ignoring dispenser id 0.")
+                        zero_reads += 1
+                        if zero_reads < DISCOVERY_ZERO_RETRIES:
+                            self._log_startup("  %s -- dispenser id 0, retrying." % ll)
+                            sleep(DISCOVERY_SELECT_SETTLE)
+                            continue
+
+                        self._log_startup("  %s -- ignoring dispenser id 0." % ll)
                         break
 
                     id = data[0]
