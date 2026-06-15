@@ -253,7 +253,8 @@ Type=simple
 User=root
 WorkingDirectory=${BARTENDRO_UI_DIR}
 Environment=PYTHONUNBUFFERED=1
-ExecStart=${BARTENDRO_UI_DIR}/.venv/bin/python ${BARTENDRO_UI_DIR}/bartendro_server.py --host ${BARTENDRO_HOST} --port ${BARTENDRO_PORT}
+EnvironmentFile=-/run/bartendro-restart.env
+ExecStart=${BARTENDRO_UI_DIR}/.venv/bin/python ${BARTENDRO_UI_DIR}/bartendro_server.py --host ${BARTENDRO_HOST} --port ${BARTENDRO_PORT} \$BARTENDRO_SERVER_ARGS
 Restart=on-failure
 RestartSec=5
 

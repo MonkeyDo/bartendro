@@ -192,7 +192,8 @@ check_ap_configuration_files() {
     check_file_contains /etc/systemd/system/dnsmasq.service.d/10-bartendro-wlan0.conf "^Requires=bartendro-wlan0\\.service$" "dnsmasq requires wlan0 setup"
     check_file_contains /etc/systemd/system/bartendro.service "^User=root$" "Bartendro service runs as root for hardware/file access"
     check_file_contains /etc/systemd/system/bartendro.service "^WorkingDirectory=${BARTENDRO_UI_DIR}$" "Bartendro service working directory is the UI directory"
-    check_file_contains /etc/systemd/system/bartendro.service "^ExecStart=${BARTENDRO_UI_DIR}/\\.venv/bin/python ${BARTENDRO_UI_DIR}/bartendro_server\\.py --host ${BARTENDRO_HOST} --port ${BARTENDRO_PORT}$" "Bartendro service uses the venv Python"
+    check_file_contains /etc/systemd/system/bartendro.service "^EnvironmentFile=-/run/bartendro-restart\\.env$" "Bartendro service accepts restart-time arguments"
+    check_file_contains /etc/systemd/system/bartendro.service "^ExecStart=${BARTENDRO_UI_DIR}/\\.venv/bin/python ${BARTENDRO_UI_DIR}/bartendro_server\\.py --host ${BARTENDRO_HOST} --port ${BARTENDRO_PORT} \\\$BARTENDRO_SERVER_ARGS$" "Bartendro service uses the venv Python"
 }
 
 check_network_state() {
