@@ -355,6 +355,9 @@ AP address:          http://${AP_ADDRESS}/
 Useful status commands:
     systemctl status bartendro hostapd dnsmasq nginx avahi-daemon
     journalctl -u bartendro -u hostapd -u dnsmasq -u nginx -u avahi-daemon -f
+
+Verify the finished setup with:
+    sudo check-bartendro-setup
 EOF
 }
 

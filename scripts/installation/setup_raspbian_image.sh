@@ -482,10 +482,17 @@ enable_pi_hardware_interfaces() {
     # I2C. raspi-config is present on normal Raspberry Pi OS images; skip this
     # step on non-Pi hosts or stripped-down images.
     if command -v raspi-config >/dev/null 2>&1; then
+        raspi_config_path="$(command -v raspi-config)"
         raspi-config nonint do_i2c 0 || true
-        # do_serial 2 disables the login shell on serial and enables the
-        # serial hardware, including on older Raspberry Pi OS releases.
-        raspi-config nonint do_serial 2 || true
+        if grep -q '^do_serial_hw()' "${raspi_config_path}" \
+           && grep -q '^do_serial_cons()' "${raspi_config_path}"; then
+            raspi-config nonint do_serial_hw 0 || true
+            raspi-config nonint do_serial_cons 1 || true
+        else
+            # Older raspi-config versions expose only do_serial. Argument 2
+            # disables the serial login shell and enables serial hardware.
+            raspi-config nonint do_serial 2 || true
+        fi
     fi
 
     printf 'i2c-dev\n' >/etc/modules-load.d/bartendro-i2c.conf
@@ -528,10 +535,10 @@ Installed Bartendro at: ${BARTENDRO_APP_DIR}
 Login user/password:    ${BARTENDRO_USER}/${BARTENDRO_PASSWORD}
 
 Next step, which does not require internet:
-    sudo /usr/local/sbin/setup-bartendro-local-ap
+    sudo setup-bartendro-local-ap
 
 Verify the finished setup with:
-    sudo /usr/local/sbin/check-bartendro-setup
+    sudo check-bartendro-setup
 
 The setup script will switch wlan0 into the Bartendro access point and expose
 the app at http://bartendro.local/.
