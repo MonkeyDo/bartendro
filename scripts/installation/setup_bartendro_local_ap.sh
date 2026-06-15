@@ -68,6 +68,10 @@ validate_inputs() {
     chmod 0755 "${BARTENDRO_HOME}" "${BARTENDRO_APP_DIR}" "${BARTENDRO_UI_DIR}"
     chmod 0644 "${BARTENDRO_UI_DIR}/bartendro.db"
     chmod 0755 "${BARTENDRO_UI_DIR}/logs" "${BARTENDRO_UI_DIR}/.db-backups"
+
+    if [ -f "${BARTENDRO_APP_DIR}/scripts/restart_bartendro.sh" ]; then
+        install -m 0755 "${BARTENDRO_APP_DIR}/scripts/restart_bartendro.sh" /usr/local/sbin/restart-bartendro
+    fi
 }
 
 write_runtime_defaults() {

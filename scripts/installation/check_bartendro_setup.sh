@@ -112,6 +112,10 @@ check_user_and_files() {
         && pass "verification script is staged" \
         || warn "verification script is not staged at /usr/local/sbin/check-bartendro-setup"
 
+    [ -x /usr/local/sbin/restart-bartendro ] \
+        && pass "restart script is staged" \
+        || warn "restart script is not staged at /usr/local/sbin/restart-bartendro"
+
     if [ -x "${BARTENDRO_UI_DIR}/.venv/bin/python" ]; then
         "${BARTENDRO_UI_DIR}/.venv/bin/python" - <<'PY' >/tmp/bartendro-import-check.out 2>&1
 import flask
