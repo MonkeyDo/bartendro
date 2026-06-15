@@ -483,8 +483,9 @@ enable_pi_hardware_interfaces() {
     # step on non-Pi hosts or stripped-down images.
     if command -v raspi-config >/dev/null 2>&1; then
         raspi-config nonint do_i2c 0 || true
-        raspi-config nonint do_serial_hw 0 || true
-        raspi-config nonint do_serial_cons 1 || true
+        # do_serial 2 disables the login shell on serial and enables the
+        # serial hardware, including on older Raspberry Pi OS releases.
+        raspi-config nonint do_serial 2 || true
     fi
 
     printf 'i2c-dev\n' >/etc/modules-load.d/bartendro-i2c.conf
