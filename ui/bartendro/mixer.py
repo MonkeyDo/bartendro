@@ -217,7 +217,7 @@ class Mixer(object):
         if ll == LL_LOW:
             return fsm.EVENT_LL_LOW
 
-        return LL_OUT
+        return fsm.EVENT_LL_OUT
 
     def _state_pre_shot(self):
 
