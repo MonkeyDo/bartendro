@@ -12,6 +12,7 @@ from werkzeug.exceptions import InternalServerError, BadRequest
 from sqlalchemy import text
 from bartendro.model.option import Option
 from bartendro.options import bartendro_options
+from bartendro.restart import restart_application
 
 DB_BACKUP_DIR = '.db-backups'
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
@@ -64,12 +65,7 @@ def ws_options():
             db.session.add(option)
 
         db.session.commit()
-        try:
-            import uwsgi
-            uwsgi.reload()
-            reload = True
-        except ImportError:
-            reload = False
+        reload = restart_application()
         return json.dumps({'reload': reload})
 
     raise BadRequest

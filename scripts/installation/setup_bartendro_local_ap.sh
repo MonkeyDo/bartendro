@@ -68,6 +68,10 @@ validate_inputs() {
     chmod 0755 "${BARTENDRO_HOME}" "${BARTENDRO_APP_DIR}" "${BARTENDRO_UI_DIR}"
     chmod 0644 "${BARTENDRO_UI_DIR}/bartendro.db"
     chmod 0755 "${BARTENDRO_UI_DIR}/logs" "${BARTENDRO_UI_DIR}/.db-backups"
+
+    if [ -f "${BARTENDRO_APP_DIR}/scripts/restart_bartendro.sh" ]; then
+        install -m 0755 "${BARTENDRO_APP_DIR}/scripts/restart_bartendro.sh" /usr/local/sbin/restart-bartendro
+    fi
 }
 
 write_runtime_defaults() {
@@ -249,7 +253,8 @@ Type=simple
 User=root
 WorkingDirectory=${BARTENDRO_UI_DIR}
 Environment=PYTHONUNBUFFERED=1
-ExecStart=${BARTENDRO_UI_DIR}/.venv/bin/python ${BARTENDRO_UI_DIR}/bartendro_server.py --host ${BARTENDRO_HOST} --port ${BARTENDRO_PORT}
+EnvironmentFile=-/run/bartendro-restart.env
+ExecStart=${BARTENDRO_UI_DIR}/.venv/bin/python ${BARTENDRO_UI_DIR}/bartendro_server.py --host ${BARTENDRO_HOST} --port ${BARTENDRO_PORT} \$BARTENDRO_SERVER_ARGS
 Restart=on-failure
 RestartSec=5
 

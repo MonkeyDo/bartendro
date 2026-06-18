@@ -45,6 +45,7 @@ else
 fi
 LOCAL_AP_SCRIPT="${BARTENDRO_APP_DIR}/scripts/installation/setup_bartendro_local_ap.sh"
 LOCAL_CHECK_SCRIPT="${BARTENDRO_APP_DIR}/scripts/installation/check_bartendro_setup.sh"
+LOCAL_RESTART_SCRIPT="${BARTENDRO_APP_DIR}/scripts/restart_bartendro.sh"
 START_AT_STEP="${START_AT_STEP:-}"
 ONLY_STEP="${ONLY_STEP:-}"
 FORCE_WIZARD=0
@@ -509,9 +510,14 @@ stage_offline_script() {
         printf 'Missing %s; keep check_bartendro_setup.sh next to this script.\n' "${LOCAL_CHECK_SCRIPT}" >&2
         exit 1
     fi
+    if [ ! -f "${LOCAL_RESTART_SCRIPT}" ]; then
+        printf 'Missing %s; keep restart_bartendro.sh next to this script.\n' "${LOCAL_RESTART_SCRIPT}" >&2
+        exit 1
+    fi
 
     install -m 0755 "${LOCAL_AP_SCRIPT}" /usr/local/sbin/setup-bartendro-local-ap
     install -m 0755 "${LOCAL_CHECK_SCRIPT}" /usr/local/sbin/check-bartendro-setup
+    install -m 0755 "${LOCAL_RESTART_SCRIPT}" /usr/local/sbin/restart-bartendro
 }
 
 main() {
