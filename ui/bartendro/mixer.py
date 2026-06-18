@@ -20,7 +20,7 @@ from bartendro.model.dispenser import Dispenser
 from bartendro.model.drink_log import DrinkLog
 from bartendro.model.shot_log import ShotLog
 from bartendro.global_lock import BartendroLock
-from bartendro.error import BartendroBusyError, BartendroBrokenError, BartendroCantPourError, BartendroCurrentSenseError
+from bartendro.error import BartendroBusyError, BartendroBrokenError, BartendroCantPourError, BartendroCurrentSenseError, BartendroPumpInstallError
 
 TICKS_PER_ML = 2.78
 CALIBRATE_ML = 60
@@ -30,6 +30,7 @@ FULL_SPEED = 255
 HALF_SPEED = 166
 SLOW_DISPENSE_THRESHOLD = 20  # ml
 MAX_DISPENSE = 1000  # ml max dispense per call. Just for sanity. :)
+PUMP_STARTUP_TIMEOUT = 5  # seconds
 
 LIQUID_OUT_THRESHOLD = 75
 LIQUID_LOW_THRESHOLD = 120
@@ -168,6 +169,12 @@ class Mixer(object):
             except BartendroCantPourError as err:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
                 #traceback.print_tb(exc_traceback)
+                raise
+
+            except BartendroPumpInstallError as err:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                #traceback.print_tb(exc_traceback)
+                self.driver.led_idle()
                 raise
 
             except BartendroCurrentSenseError as err:
@@ -574,6 +581,8 @@ class Mixer(object):
     def _dispense_recipe(self, dispensers, recipe, always_fast=False):
 
         active_disp = []
+        startup_ticks = {}
+        startup_times = {}
         for disp in recipe:
             if not recipe[disp]:
                 continue
@@ -585,30 +594,47 @@ class Mixer(object):
 
             self.driver.set_motor_direction(disp, MOTOR_DIRECTION_FORWARD)
             if not self.driver.dispense_ticks(disp, ticks, speed):
+                self._stop_active_dispensers(active_disp)
                 raise BartendroBrokenError("Dispense error. Dispense %d ticks, speed %d on dispenser %d failed." %
                                            (ticks, speed, disp + 1))
 
             active_disp.append(disp)
+            startup_ticks[disp] = self.driver.get_saved_tick_count(disp)
+            startup_times[disp] = time()
             sleep(.01)
 
-        for disp in active_disp:
-            while True:
-                (is_dispensing, over_current) = app.driver.is_dispensing(disp)
-                log.debug("is_disp %d, over_cur %d" % (is_dispensing, over_current))
+        try:
+            remaining_disp = list(active_disp)
+            while remaining_disp:
+                for disp in list(remaining_disp):
+                    (is_dispensing, over_current) = app.driver.is_dispensing(disp)
+                    log.debug("is_disp %d, over_cur %d" % (is_dispensing, over_current))
 
-                # If we get errors here, try again. Running motors can cause noisy comm lines
-                if is_dispensing < 0 or over_current < 0:
-                    log.error("Is dispensing test on dispenser %d failed. Ignoring." % (disp + 1))
-                    sleep(.2)
-                    continue
+                    # If we get errors here, try again. Running motors can cause noisy comm lines
+                    if is_dispensing < 0 or over_current < 0:
+                        log.error("Is dispensing test on dispenser %d failed. Ignoring." % (disp + 1))
+                        sleep(.2)
+                        continue
 
-                if over_current:
-                    raise BartendroCurrentSenseError("One of the pumps did not operate properly. Your drink is broken. Sorry. :(")
+                    if over_current:
+                        raise BartendroCurrentSenseError("One of the pumps did not operate properly. Your drink is broken. Sorry. :(")
 
-                if is_dispensing == 0:
-                    break
+                    if is_dispensing == 0:
+                        remaining_disp.remove(disp)
+                        continue
+
+                    if time() - startup_times[disp] >= PUMP_STARTUP_TIMEOUT:
+                        current_ticks = self.driver.get_saved_tick_count(disp)
+                        if current_ticks >= 0 and startup_ticks[disp] >= 0 and current_ticks == startup_ticks[disp]:
+                            raise BartendroPumpInstallError("No liquid was dispensed. Check that the pump elements are installed properly.")
+                        startup_ticks[disp] = current_ticks
+                        startup_times[disp] = time()
 
                 sleep(.1)
+
+        except (BartendroCurrentSenseError, BartendroPumpInstallError):
+            self._stop_active_dispensers(active_disp)
+            raise
 
         # Decrement booze levels according to what was just dispensed
         for dispenser_index in recipe:
@@ -616,6 +642,11 @@ class Mixer(object):
             dispensers[dispenser_index].actual -= recipe[dispenser_index]
             db.session.add(dispensers[dispenser_index])
         db.session.commit()
+
+    def _stop_active_dispensers(self, active_disp):
+        for disp in active_disp:
+            if not self.driver.stop(disp):
+                log.error("Failed to stop dispenser %d after dispense error." % (disp + 1))
 
 
     def _can_make_drink(self, boozes, booze_dict):
