@@ -39,6 +39,15 @@ class BartendroCurrentSenseError(Exception):
         return repr(self.err)
 
 
+class BartendroPumpInstallError(Exception):
+
+    def __init__(self, err):
+        self.err = err
+
+    def __str__(self):
+        return repr(self.err)
+
+
 class BartendroLiquidLevelReadError(Exception):
 
     def __init__(self, err):

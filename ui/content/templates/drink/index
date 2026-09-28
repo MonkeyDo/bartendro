@@ -149,6 +149,11 @@
       Bartendro can't make this drink right now. Sorry!
   </p>
 </div>
+<div id="pump-install-dialog" title="Pump warning" style="display: none; text-align: center">
+  <p>
+      No liquid was dispensed. Check that the pump elements are installed properly.
+  </p>
+</div>
 <div id="error-dialog" title="Bartendro error" style="display: none; text-align: center">
   <p>
       Bartendro has encountered an error making this drink. Sorry!
@@ -412,6 +417,11 @@ function show_dialog(title, text)
     $("#log-in-required-dialog").dialog({ buttons: [ { text: "Ok", click: function() { $( this ).dialog( "close" ); } } ] });
 }
 
+function is_pump_install_error(xmlhttp)
+{
+    return xmlhttp.responseText.indexOf("pump elements are installed properly") >= 0;
+}
+
 {% if options.must_login_to_dispense and not current_user.is_authenticated() %}
 function make_drink(drink, is_taster)
 {
@@ -462,7 +472,12 @@ function make_drink(drink, is_taster)
                     $("#busy-dialog").dialog({ buttons: [ { text: "Ok", click: function() { $( this ).dialog( "close" ); } } ] });
                 else
                 if (xmlhttp.status == 400)
-                    $("#cant-make-dialog").dialog({ buttons: [ { text: "Ok", click: function() { $( this ).dialog( "close" ); window.location = "/"; } } ] });
+                {
+                    if (is_pump_install_error(xmlhttp))
+                        $("#pump-install-dialog").dialog({ buttons: [ { text: "Ok", click: function() { $( this ).dialog( "close" ); window.location = "/"; } } ] });
+                    else
+                        $("#cant-make-dialog").dialog({ buttons: [ { text: "Ok", click: function() { $( this ).dialog( "close" ); window.location = "/"; } } ] });
+                }
                 else
                     $("#error-dialog").dialog({ buttons: [ { text: "Ok", click: function() { $( this ).dialog( "close" ); window.location = "/"; } } ] });
             }
