@@ -9,7 +9,7 @@ navigate to the `http://bartendro.local/admin/lost-passwd` webpage when connecte
 double check you are connected to the WiFi network created by the Pi, it can be helpful to remove 'auto-connect' from your configuration for other nearby wifi networks to avoid it connecting to those.
 
 ### Getting TLS/SSL certificate or secure connection errors?
-this is be design, bartendro does not have a signed SSL certificate, if you can not access the app then ensure that the url in your browser starts with `http://` and not `https://`
+this is be design, bartendro does not have a signed SSL certificate, if you can not access the app then ensure that the URL in your browser starts with `http://` and not `https://`
 
 ### Need to edit something manually? 
 All the drinks/menu/dispenser settings can be manually edited in the configuration file found within `/ui/bartendro/options.py` of your Pi.
