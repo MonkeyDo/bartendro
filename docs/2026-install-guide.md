@@ -2,13 +2,21 @@
 
 ### BEFORE YOU BEGIN
 
-Bartendro requires not just a RPI 4 but many other parts: a custom router board printed by Party Robotics, the dispensers, their individual minirouters, cabling, tubing, etc - the open schematics of these can be found in [the original repo in the /hardware folder.](https://github.com/partyrobotics/bartendro/tree/master/hardware)
+Bartendro requires not just a RPI 4 but many other parts: 
+* a custom router board printed by Party Robotics or DIY manufacturing
+* a number of dispensers
+* their individual minirouters
+* cabling, tubing, etc
+
+the open schematics of these can be found in [the original repo in the /hardware folder.](https://github.com/partyrobotics/bartendro/tree/master/hardware)
 
 This project requires that you build your own bartendro or procure one from a former kickstart backer or client.
 
 In this revival of the code, we will seek to test it on other platforms and OS versions, but at this moment bartendro only works on a RPI 4 running 32-bit RaspiOS based on Buster - please see ROADMAP.md for updates on our testing.
 
-There are currently **two ways** in which a new user can setup a Bartendro bot using this repository: the lazy way (flashing an image onto an SD card) and the nerd way (SSH or connect a monitor to the RPI and setup Bartendro using the command line). We have only tested the Lazy Way and the image linked below is the updated 2026 version, if you wish to flash the original SD card image please download the file in the [2021-05-21 release from Party Robotics.](https://github.com/partyrobotics/bartendro/releases/tag/v-2021-05-21)
+There are currently **two ways** in which a new user can setup a Bartendro bot using this repository: **the lazy way** (flashing an image onto an SD card) and **the nerd way** (SSH or connect a monitor to the RPI and setup Bartendro using the command line). 
+
+We have only tested the Lazy Way and the image linked below is the updated 2026 version, if you wish to flash the original SD card image please download the file in the [2021-05-21 release from Party Robotics.](https://github.com/partyrobotics/bartendro/releases/tag/v-2021-05-21)
 
 ### THE LAZY WAY
 
@@ -54,7 +62,7 @@ There are currently **two ways** in which a new user can setup a Bartendro bot u
 curl -fsSL https://raw.githubusercontent.com/MonkeyDo/bartendro/main/scripts/installation/setup_raspbian_image.sh | sudo bash
 ```
 
-* The setup wizard will ask for the Bartendro user, password, Wi-Fi access point name/password, and network settings. Press Enter to accept each default.
+* The setup wizard will ask for the Bartendro user, password, Wi-Fi access point SSID/password, and network settings. Press Enter to accept each default.
 * This step must run while the Raspberry Pi still has internet access. It installs system packages, creates the `bartendro` user, clones this repository, installs Python dependencies, and stages the offline access point scripts.
 * If setup is interrupted, rerun the same command or resume from a named step. For example:
 
@@ -76,8 +84,15 @@ sudo check-bartendro-setup
 ```
 (Scripts are in the folder `/usr/local/sbin/`)
 
-* Reboot for good luck. The Pi should create a Wi-Fi network using the SSID/password selected in the wizard, and the app should be available at `http://bartendro.local/`.
-* Once done rebooting, you can log into the RPi with the user/password selected in the wizard (bartendro).
-* As an additional step you can also remove the 'pi' user from sysytem: `sudo deluser --force --remove-home --remove-all-files pi` - note: if you do this step you can now you can no longer log in as `pi`
+* Reboot for good luck. Now the Pi should create a Wi-Fi network using the SSID/password selected in the wizard.
+* Once done rebooting, connect to bartendro's Wi-Fi with the user/password selected in the wizard. (defaults: `bartendro`/`bartendro`) You can use a phone, laptop or tablet for this. Your device may give an error that the network does not have internet connectivity, this is by design, you can safely ignore this.
+* Once connected use the web-browser to connect to the app at `http://bartendro.local/` - this should load up the bartendro main page
+* Tap/click on the top bartendro logo in the top right of the page to access the admin settings using the username and password provided during the install script (defaults: `bartendro`/`boozemeup`)
+
+5. Troubleshooting 
+* As an additional step you can also remove the 'pi' user from sysytem: `sudo deluser --force --remove-home --remove-all-files pi` - note: if you do this step you can now you can no longer log in as `pi`.
+* Forgot the password or want to set a new one?  navigate to the `http://bartendro.local/admin/lost-passwd` webpage when connected to Bartendro Wi-Fi
+* Having problems accessing `bartendro.local`? - double check you are connected to the WiFi network created by the Pi, it can be helpful to remove 'auto-connect' from your configuration for other nearby wifi networks to avoid it connecting to those.
+* Getting TLS/SSL certificate or secure connection errors? - this is be design, bartendro does not have a signed SSL certificate, if you can not access the app then ensure that the url in your browser starts with `http://` and not `https://`
 
 "In theory that should be it. Your SD card should be ready to rock." - Mayhem
