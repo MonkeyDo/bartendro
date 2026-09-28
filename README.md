@@ -45,10 +45,10 @@ Getting started
 
 - Read the [history of Bartendro](https://github.com/MonkeyDo/bartendro/blob/master/docs/history.md)
 - Read our [Start Here guide](https://github.com/MonkeyDo/bartendro/blob/master/docs/2026-start-here.md)
-- Read the [Install Guide:](https://github.com/MonkeyDo/bartendro/blob/master/docs/2026-install-guide.md)
-- Read the [User Guide:](https://github.com/MonkeyDo/bartendro/blob/master/docs/2026-user-guide.md)
+- Read the [Install Guide](https://github.com/MonkeyDo/bartendro/blob/master/docs/2026-install-guide.md)
+- Read the [User Guide](https://github.com/MonkeyDo/bartendro/blob/master/docs/2026-user-guide.md)
 - Get hold of or build your own Bartendro (see Requirements above)
-- flash one of the Releases listed above onto a SD card with at least 4GB of memory and follow the [Install Guide](https://github.com/MonkeyDo/bartendro/blob/master/docs/2026-install-guide.md)
+- Flash one of the Releases listed above onto a SD card with at least 4GB of memory and follow the [Install Guide](https://github.com/MonkeyDo/bartendro/blob/master/docs/2026-install-guide.md)
 - Once you have the hardware setup and working follow the [User Guide](https://github.com/MonkeyDo/bartendro/blob/master/docs/2026-user-guide.md) to get your Bartendro calibrated and serving robo-cocktails!
 
 Links to relevant code repositories
