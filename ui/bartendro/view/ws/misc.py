@@ -1,6 +1,6 @@
 import os
 import logging
-from werkzeug.exceptions import ServiceUnavailable, InternalServerError
+from werkzeug.exceptions import ServiceUnavailable, InternalServerError, BadRequest
 from bartendro import app, db, STATIC_FOLDER
 from flask import Flask, request, Response
 from flask_login import login_required
@@ -8,6 +8,7 @@ from bartendro.model.drink import Drink
 from bartendro.model.booze import Booze
 from bartendro.form.booze import BoozeForm
 from bartendro.error import BartendroBusyError, BartendroBrokenError, BartendroCantPourError, BartendroCurrentSenseError
+from bartendro.diagnostics import log_operation
 
 log = logging.getLogger('bartendro')
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
@@ -16,7 +17,9 @@ DB_FILE = os.path.join(BASE_DIR, "bartendro.db")
 
 @app.route('/ws/reset')
 @login_required
+@log_operation
 def ws_reset():
+    log.debug("Hardware reset requested")
     driver = app.driver
     mc = app.mc
     mc.delete("top_drinks")
@@ -29,6 +32,7 @@ def ws_reset():
 
 @app.route('/ws/test')
 @login_required
+@log_operation
 def ws_test_chain():
     driver = app.driver
     if driver.count() == 0:
@@ -73,6 +77,7 @@ def ws_download_db():
         db_data = fh.read()
         fh.close()
     except IOError as e:
+        log.exception("Database download failed: path=%s", DB_FILE)
         raise ServiceUnavailable("Error: downloading database failed: %s" % e)
 
     r = Response(db_data, mimetype='application/x-sqlite')

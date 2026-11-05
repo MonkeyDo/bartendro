@@ -7,6 +7,9 @@ from bartendro.model.booze import Booze
 from bartendro.model.drink_booze import DrinkBooze
 from bartendro.form.booze import BoozeForm
 import json
+import logging
+
+log = logging.getLogger('bartendro')
 
 
 @app.route('/ws/booze/match/<str>')
@@ -102,6 +105,7 @@ def ws_booze_delete(booze_id):
         db.session.delete(booze)
         db.session.commit()
     except Exception as e:
+        log.exception("Booze deletion failed: booze_id=%s", booze_id)
         db.session.rollback()
         raise BadRequest(f"Failed to delete booze: {str(e)}")
     

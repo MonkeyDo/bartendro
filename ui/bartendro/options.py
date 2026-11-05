@@ -65,10 +65,10 @@ def setup_options_table():
             log.info("option %s is not in DB." % opt)
             try:
                 value = getattr(config, opt)
-                log.info("Get option from legacy: %s" % value)
+                log.debug("Loading option %s from legacy config", opt)
             except AttributeError:
                 value = bartendro_options[opt]
-                log.info("Get option from defaults: %s" % value)
+                log.debug("Loading option %s from defaults", opt)
 
             log.info("Adding option '%s'" % opt)
             o = Option(opt, value)
@@ -83,7 +83,7 @@ def setup_options_table():
         shot_log.__table__.create(db.engine)
 
 
-def load_options():
+def load_options(include_hardware=True):
     '''Load options from the db and make them into a nice an accessible modules'''
 
     setup_options_table()
@@ -101,15 +101,13 @@ def load_options():
                 raise BadConfigOptionsError
         except KeyError:
             # Ignore options we don't understand
-            pass
+            log.debug("Ignoring unknown option %s", o.key)
+            continue
 
         setattr(options, o.key, value)
 
-    if app.driver.count() == 1:
-        setattr(options, "i_am_shotbot", True)
-        setattr(options, "use_shotbot_ui", True)
-    else:
-        setattr(options, "i_am_shotbot", False)
+    if include_hardware:
+        configure_hardware_options(options)
 
     if options.log_level not in LOG_LEVELS:
         log.warning("Invalid logging level %r; using INFO", options.log_level)
@@ -120,3 +118,9 @@ def load_options():
         handler.setLevel(options.log_level)
 
     return options
+
+
+def configure_hardware_options(options):
+    options.i_am_shotbot = app.driver.count() == 1
+    if options.i_am_shotbot:
+        options.use_shotbot_ui = True

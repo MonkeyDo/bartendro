@@ -35,20 +35,29 @@ class DispenserSelect(object):
         self.selected = 255
 
     def _write_byte_with_retry(self, address, byte):
+        log.debug("I2C write: bus=%d address=0x%02x byte=0x%02x selected_port=%d attempt=1",
+                  ROUTER_BUS, address, byte, self.selected)
         try:
             self.router.write_byte(address, byte)
         except IOError as e:
             # if we get an error, try again, just once
             try:
                 log.error("*** router send: error while sending. Retrying. " + repr(e))
+                log.debug("I2C retry: bus=%d address=0x%02x byte=0x%02x selected_port=%d attempt=2 error=%r",
+                          ROUTER_BUS, address, byte, self.selected, e)
                 self.router.write_byte(address, byte)
+                log.debug("I2C retry recovered: bus=%d address=0x%02x byte=0x%02x",
+                          ROUTER_BUS, address, byte)
             except IOError:
+                log.exception("I2C retries exhausted: bus=%d address=0x%02x byte=0x%02x selected_port=%d",
+                              ROUTER_BUS, address, byte, self.selected)
                 app.globals.set_state(fsm.STATE_ERROR)
                 raise BartendroBrokenError("Cannot write to I2C interface.")
 
     def reset(self):
         if self.software_only: return
         #self._write_byte_with_retry(ROUTER_ADDRESS, ROUTER_CMD_RESET)
+        log.debug("Router reset: waiting 150 ms; hardware reset command is disabled")
         sleep(.15)
 
     def select(self, dispenser):
@@ -86,13 +95,14 @@ class DispenserSelect(object):
             log.error("You must install the smbus module!")
             sys.exit(-1)
 
-        log.info("Opening I2C bus to router")
+        log.debug("Opening I2C router: bus=%d address=0x%02x", ROUTER_BUS, ROUTER_ADDRESS)
         try:
             self.router = smbus.SMBus(ROUTER_BUS)
         except IOError:
+            log.exception("Cannot open I2C router: bus=%d address=0x%02x", ROUTER_BUS, ROUTER_ADDRESS)
             app.globals.set_state(fsm.STATE_ERROR)
             raise BartendroBrokenError("Cannot open I2C interface.")
-        log.info("Done.")
+        log.debug("I2C router ready: bus=%d address=0x%02x", ROUTER_BUS, ROUTER_ADDRESS)
 
 
 if __name__ == "__main__":

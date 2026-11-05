@@ -1,7 +1,7 @@
 import logging
 import sys
 import traceback
-from time import sleep, time
+from time import sleep, time, monotonic
 from threading import Thread
 from flask import Flask, current_app
 from flask_sqlalchemy import SQLAlchemy
@@ -10,6 +10,7 @@ from sqlalchemy.orm import mapper, relationship, backref
 from sqlalchemy import text
 from bartendro import db, app
 from bartendro import fsm
+from bartendro.diagnostics import log_operation
 from bartendro.clean import CleanCycle
 from bartendro.pourcomplete import PourCompleteDelay
 from bartendro.router.driver import MOTOR_DIRECTION_FORWARD
@@ -41,6 +42,8 @@ LL_OUT = 0
 LL_OK = 1
 LL_LOW = 2
 LL_STATE_NAMES = {LL_OUT: 'OUT', LL_OK: 'OK', LL_LOW: 'LOW'}
+STATE_NAMES = {value: name for name, value in vars(fsm).items() if name.startswith('STATE_')}
+EVENT_NAMES = {value: name for name, value in vars(fsm).items() if name.startswith('EVENT_')}
 
 log = logging.getLogger('bartendro')
 
@@ -113,6 +116,7 @@ class Mixer(object):
                 db.session.add(dlog)
                 db.session.commit()
 
+    @log_operation
     def do_event(self, event):
         cur_state = app.globals.get_state()
 
@@ -126,7 +130,9 @@ class Mixer(object):
             if not next_state:
                 log.error("Current state %d, event %d. No next state." % (cur_state, event))
                 raise BartendroBrokenError("Bartendro is unable to pour drinks right now. Sorry.")
-            #print "cur state: %d event: %d next state: %d" % (cur_state, event, next_state)
+            log.debug("Mixer transition: state=%s event=%s next=%s",
+                      STATE_NAMES.get(cur_state, cur_state), EVENT_NAMES.get(event, event),
+                      STATE_NAMES.get(next_state, next_state))
 
             try:
                 if next_state == fsm.STATE_PRE_POUR:
@@ -160,20 +166,18 @@ class Mixer(object):
                     raise BartendroBrokenError("Internal error. Bartendro has had one too many.")
 
             except BartendroBrokenError as err:
-                exc_type, exc_value, exc_traceback = sys.exc_info()
-                #traceback.print_tb(exc_traceback)
+                log.debug("Mixer hardware failure: state=%s next=%s error=%s",
+                          STATE_NAMES.get(cur_state, cur_state), STATE_NAMES.get(next_state, next_state), err)
                 self._state_error()
                 app.globals.set_state(fsm.STATE_ERROR)
                 raise
 
             except BartendroCantPourError as err:
-                exc_type, exc_value, exc_traceback = sys.exc_info()
-                #traceback.print_tb(exc_traceback)
+                log.debug("Mixer pour rejected: state=%s reason=%s", STATE_NAMES.get(cur_state, cur_state), err)
                 raise
 
             except BartendroCurrentSenseError as err:
-                exc_type, exc_value, exc_traceback = sys.exc_info()
-                #traceback.print_tb(exc_traceback)
+                log.debug("Mixer overcurrent: state=%s reason=%s", STATE_NAMES.get(cur_state, cur_state), err)
                 raise BartendroBrokenError(err)
 
             cur_state = next_state
@@ -275,6 +279,8 @@ class Mixer(object):
         return fsm.EVENT_DONE
 
     def _state_pouring(self):
+        log.debug("Pour requested: drink_id=%s booze_volumes_ml=%s",
+                  self.recipe.drink.id if self.recipe.drink else None, self.recipe.data)
         self.driver.led_dispense()
 
         recipe = {}
@@ -475,7 +481,8 @@ class Mixer(object):
 
         ll_state = LL_OK
 
-        log.info("mixer.check_liquid_levels: check levels")
+        log.debug("Checking sensor levels: out_threshold=%d low_threshold=%d",
+                  LIQUID_OUT_THRESHOLD, LIQUID_LOW_THRESHOLD)
         # step 1: ask the dispensers to update their liquid levels
         if not self.driver.update_liquid_levels():
             raise BartendroLiquidLevelReadError("Failed to update liquid levels")
@@ -495,7 +502,8 @@ class Mixer(object):
             if level < 0:
                 raise BartendroLiquidLevelReadError("Failed to read liquid levels from dispenser %d" % (i + 1))
 
-            log.info("dispenser %d level: %d (stored: %d)" % (i, level, dispenser.out))
+            log.debug("Liquid sensor: dispenser=%d reading=%d previous=%s",
+                      i + 1, level, LL_STATE_NAMES.get(dispenser.out, dispenser.out))
 
             if level <= LIQUID_OUT_THRESHOLD:
                 ll_state = LL_OUT
@@ -517,6 +525,8 @@ class Mixer(object):
 
                 dispenser.out = LL_OK
 
+            log.debug("Liquid sensor result: dispenser=%d state=%s", i + 1, LL_STATE_NAMES[dispenser.out])
+
         db.session.commit()
 
         if clear_cache:
@@ -524,7 +534,7 @@ class Mixer(object):
             self.mc.delete("other_drinks")
             self.mc.delete("available_drink_list")
 
-        log.info("Checking levels done. New state: %s (%d)", LL_STATE_NAMES[ll_state], ll_state)
+        log.debug("Checking levels done. New state: %s (%d)", LL_STATE_NAMES[ll_state], ll_state)
 
         return ll_state
 
@@ -561,6 +571,10 @@ class Mixer(object):
 
                 dispenser.out = LL_OK
 
+            log.debug("Calculated liquid level: dispenser=%d state=%s remaining_ml=%s out_threshold=%d low_threshold=%d",
+                      i + 1,  LL_STATE_NAMES[dispenser.out], dispenser.actual, 
+                      CALCULATED_LIQUID_OUT_THRESHOLD, CALCULATED_LIQUID_LOW_THRESHOLD)
+
         db.session.commit()
 
         if clear_cache:
@@ -575,6 +589,7 @@ class Mixer(object):
     def _dispense_recipe(self, dispensers, recipe, always_fast=False):
 
         active_disp = []
+        started = monotonic()
         for disp in recipe:
             if not recipe[disp]:
                 continue
@@ -584,7 +599,10 @@ class Mixer(object):
             else:
                 speed = FULL_SPEED
 
-            self.driver.set_motor_direction(disp, MOTOR_DIRECTION_FORWARD)
+            log.debug("Pump dispatch: dispenser=%d volume_ml=%s ticks=%d speed=%d",
+                      disp + 1, recipe[disp], ticks, speed)
+            if not self.driver.set_motor_direction(disp, MOTOR_DIRECTION_FORWARD):
+                log.error("Motor direction command failed: dispenser=%d direction=forward", disp + 1)
             if not self.driver.dispense_ticks(disp, ticks, speed):
                 raise BartendroBrokenError("Dispense error. Dispense %d ticks, speed %d on dispenser %d failed." %
                                            (ticks, speed, disp + 1))
@@ -593,27 +611,40 @@ class Mixer(object):
             sleep(.01)
 
         for disp in active_disp:
+            failed_polls = 0
             while True:
                 (is_dispensing, over_current) = app.driver.is_dispensing(disp)
-                log.debug("is_disp %d, over_cur %d" % (is_dispensing, over_current))
+                log.debug("Pump status: dispenser=%d dispensing=%s overcurrent=%s elapsed_ms=%.1f",
+                          disp + 1, is_dispensing, over_current, (monotonic() - started) * 1000)
 
                 # If we get errors here, try again. Running motors can cause noisy comm lines
                 if is_dispensing < 0 or over_current < 0:
-                    log.error("Is dispensing test on dispenser %d failed. Ignoring." % (disp + 1))
+                    failed_polls += 1
+                    if failed_polls == 1 or failed_polls % 25 == 0:
+                        log.debug("Pump status unavailable: dispenser=%d consecutive_failures=%d elapsed_ms=%.1f; retrying",
+                                  disp + 1, failed_polls, (monotonic() - started) * 1000)
                     sleep(.2)
                     continue
 
+                if failed_polls:
+                    log.debug("Pump status recovered: dispenser=%d failed_polls=%d", disp + 1, failed_polls)
+                    failed_polls = 0
                 if over_current:
+                    log.error("Pump overcurrent: dispenser=%d elapsed_ms=%.1f", disp + 1,
+                              (monotonic() - started) * 1000)
                     raise BartendroCurrentSenseError("One of the pumps did not operate properly. Your drink is broken. Sorry. :(")
 
                 if is_dispensing == 0:
+                    log.debug("Pump completed: dispenser=%d elapsed_ms=%.1f", disp + 1,
+                              (monotonic() - started) * 1000)
                     break
 
                 sleep(.1)
 
         # Decrement booze levels according to what was just dispensed
         for dispenser_index in recipe:
-            print(dispensers[dispenser_index].actual)
+            log.debug("Updating liquid inventory: dispenser=%d before_ml=%s dispensed_ml=%s",
+                      dispenser_index + 1, dispensers[dispenser_index].actual, recipe[dispenser_index])
             dispensers[dispenser_index].actual -= recipe[dispenser_index]
             db.session.add(dispensers[dispenser_index])
         db.session.commit()
