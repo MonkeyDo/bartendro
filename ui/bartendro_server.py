@@ -17,7 +17,7 @@ from bartendro.router import driver
 from bartendro import mixer
 from bartendro.error import BartendroBrokenError, SerialIOError
 from bartendro.options import load_options, configure_hardware_options
-from bartendro.diagnostics import OperationFilter
+from bartendro.diagnostics import OperationFilter, WerkzeugLogFilter
 
 RPI_CPU_IDS_FOR_TTYAMA0 = [
     "0002", "0003", "0004", "0005", "0006", "0007", "0008", "0009", "000d", "000e", "000f", "0010", "0013", "0011", "0012",
@@ -115,6 +115,8 @@ for console_handler in root_logger.handlers:
 handler.setFormatter(log_formatter)
 handler.addFilter(OperationFilter())
 root_logger.addHandler(handler)
+# Remap Werkzeug INFO to DEBUG before handlers apply their level thresholds.
+logging.getLogger('werkzeug').addFilter(WerkzeugLogFilter())
 logger = logging.getLogger('bartendro')
 logger.info("Bartendro start up sequence:")
 
