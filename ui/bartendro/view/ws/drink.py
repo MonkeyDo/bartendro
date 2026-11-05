@@ -3,6 +3,7 @@ import logging
 from time import sleep
 from operator import itemgetter
 from bartendro import app, db, mixer
+from bartendro.diagnostics import log_operation
 from flask import Flask, request
 from flask_login import login_required, current_user
 from werkzeug.exceptions import ServiceUnavailable, BadRequest, InternalServerError
@@ -17,6 +18,7 @@ from bartendro.error import BartendroBusyError, BartendroBrokenError, BartendroC
 log = logging.getLogger('bartendro')
 
 
+@log_operation
 def ws_make_drink(drink_id):
     log.debug("Drink request: drink_id=%s method=%s path=%s", drink_id, request.method, request.path)
     recipe = {}
@@ -66,6 +68,7 @@ def ws_drink_available(drink, state):
 
 
 @app.route('/ws/shots/<int:booze_id>')
+@log_operation
 def ws_shots(booze_id):
     log.debug("Shot request: booze_id=%s method=%s path=%s", booze_id, request.method, request.path)
     if app.options.must_login_to_dispense and not current_user.is_authenticated():
