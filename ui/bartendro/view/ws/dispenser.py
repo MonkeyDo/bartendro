@@ -32,6 +32,7 @@ def ws_dispenser_reverse(disp):
 
 
 def run_dispenser(disp, forward):
+    log.debug("Manual pump start: dispenser=%d forward=%s", disp, forward)
     if forward:
         app.driver.set_motor_direction(disp - 1, MOTOR_DIRECTION_FORWARD)
     else:
@@ -50,6 +51,7 @@ def ws_dispenser_off(disp):
     if app.options.must_login_to_dispense and not current_user.is_authenticated():
         return "login required"
 
+    log.debug("Manual pump stop: dispenser=%d", disp)
     err = ""
     if not app.driver.stop(disp - 1):
         err = "Failed to stop dispenser %d" % disp

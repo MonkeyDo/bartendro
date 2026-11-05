@@ -18,6 +18,7 @@ log = logging.getLogger('bartendro')
 
 
 def ws_make_drink(drink_id):
+    log.debug("Drink request: drink_id=%s method=%s path=%s", drink_id, request.method, request.path)
     recipe = {}
     for arg in request.args:
         disp = int(arg[5:])
@@ -66,6 +67,7 @@ def ws_drink_available(drink, state):
 
 @app.route('/ws/shots/<int:booze_id>')
 def ws_shots(booze_id):
+    log.debug("Shot request: booze_id=%s method=%s path=%s", booze_id, request.method, request.path)
     if app.options.must_login_to_dispense and not current_user.is_authenticated():
         return "login required"
 
@@ -161,7 +163,7 @@ def ws_drink_delete(drink_id):
 def ws_drink_save(drink):
 
     data = request.json['drink']
-    print(json.dumps(data, indent=4, sort_keys=True))
+    log.debug("Saving drink: drink_id=%s", data.get('id'))
     id = int(data["id"] or 0)
     if id > 0:
         drink = Drink.query.filter_by(id=int(id)).first()

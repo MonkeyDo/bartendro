@@ -17,6 +17,7 @@ DB_FILE = os.path.join(BASE_DIR, "bartendro.db")
 @app.route('/ws/reset')
 @login_required
 def ws_reset():
+    log.debug("Hardware reset requested")
     driver = app.driver
     mc = app.mc
     mc.delete("top_drinks")

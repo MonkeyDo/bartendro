@@ -152,13 +152,15 @@ class RouterDriver(object):
         except serial.serialutil.SerialException as e:
             raise SerialIOError(e)
 
-        log.info("Done.\n")
+        log.debug("Serial ready: device=%s baud=%d timeout=%s", self.device, BAUD_RATE, self.ser.timeout)
 
+        log.debug("Initializing status LED on GPIO D18")
         from . import status_led
         self.status = status_led.StatusLED(self.software_only)
         self.status.set_color(0, 0, 1)
 
         self.dispenser_select = dispenser_select.DispenserSelect(MAX_DISPENSERS, self.software_only)
+        log.debug("Initializing I2C router selection")
         self.dispenser_select.open()
         self.dispenser_select.reset()
 
