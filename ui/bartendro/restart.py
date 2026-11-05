@@ -1,5 +1,8 @@
 import os
 import subprocess
+import logging
+
+log = logging.getLogger('bartendro')
 
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -15,6 +18,7 @@ def restart_application():
 
     script = find_restart_script()
     if not script:
+        log.error("Cannot restart application: no executable restart script found")
         return False
 
     try:
@@ -27,6 +31,7 @@ def restart_application():
         )
         return True
     except OSError:
+        log.exception("Failed to launch restart script: path=%s", script)
         return False
 
 

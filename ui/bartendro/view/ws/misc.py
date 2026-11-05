@@ -73,6 +73,7 @@ def ws_download_db():
         db_data = fh.read()
         fh.close()
     except IOError as e:
+        log.exception("Database download failed: path=%s", DB_FILE)
         raise ServiceUnavailable("Error: downloading database failed: %s" % e)
 
     r = Response(db_data, mimetype='application/x-sqlite')

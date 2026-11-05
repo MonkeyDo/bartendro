@@ -83,6 +83,7 @@ def ws_upload():
     try:
         db_file.save(file_name)
     except IOError:
+        log.exception("Database upload could not be saved: path=%s", file_name)
         raise InternalServerError
 
     con = None
@@ -91,6 +92,7 @@ def ws_upload():
         cur = con.cursor()
         cur.execute("SELECT * FROM dispenser")
     except sqlite3.DatabaseError:
+        log.exception("Database upload validation failed: path=%s", file_name)
         os.unlink(file_name)
         raise BadRequest
     finally:
@@ -111,6 +113,7 @@ def ws_upload_confirm():
         try:
             os.mkdir(DB_BACKUP_DIR)
         except OSError:
+            log.exception("Cannot create database backup directory: path=%s", DB_BACKUP_DIR)
             return json.dumps({'error': "Cannot create backup dir"})
 
     # close the connection to the database to flush anything that might still be in a cache somewhere
@@ -119,11 +122,13 @@ def ws_upload_confirm():
     try:
         shutil.move(DB_FILE, os.path.join(DB_BACKUP_DIR, "%d.db" % int(time())))
     except OSError:
+        log.exception("Database backup failed: source=%s backup_dir=%s", DB_FILE, DB_BACKUP_DIR)
         return json.dumps({'error': "Cannot backup old database"})
 
     try:
         shutil.move(file_name, DB_FILE)
     except OSError:
+        log.exception("Database replacement failed: source=%s destination=%s", file_name, DB_FILE)
         return json.dumps({'error': "Cannot backup old database"})
 
     mc = app.mc
