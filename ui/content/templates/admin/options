@@ -9,6 +9,17 @@
                 <h4>General options</h4>
                 <div style="margin-left: 15px">
                     <div>
+                        <label for="option-log-level">Logging level</label>
+                        <select id="option-log-level" name="option-log-level">
+                            <option value="DEBUG">Debug (most detail)</option>
+                            <option value="INFO">Info (default)</option>
+                            <option value="WARNING">Warning</option>
+                            <option value="ERROR">Error</option>
+                            <option value="CRITICAL">Critical (least detail)</option>
+                        </select>
+                        <span class="help-block">Record messages at this level and above in the console and log file. Applies when saved.</span>
+                    </div>
+                    <div>
                         <label for="option-use-liquid-sensors" class="checkbox">
                              <input id="option-use-liquid-sensors" name="option-use-liquid-sensors" type="checkbox"></input>
                              Use liquid level sensors (check this only if you have the sensors installed)
@@ -279,6 +290,7 @@ function load()
 
 function set_options(opts)
 {
+    $('#option-log-level').val(opts['log_level'] || 'INFO');
     if (opts['use_liquid_level_sensors'])
         $("#option-use-liquid-sensors").prop("checked", true);
     else
@@ -330,6 +342,7 @@ function save()
         return;
 
     options = {};
+    options['log_level'] = $("#option-log-level").val();
     options['use_liquid_level_sensors'] = $("#option-use-liquid-sensors").prop("checked") ? 1 : 0;
     options['use_shotbot_ui'] = $("#option-use-shotbot-ui").prop("checked") ? 1 : 0;
     options['show_feeling_lucky'] = $("#option-show-feeling-lucky").prop("checked") ? 1 : 0;
