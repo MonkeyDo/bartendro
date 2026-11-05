@@ -49,6 +49,8 @@ class DispenserSelect(object):
                 log.debug("I2C retry recovered: bus=%d address=0x%02x byte=0x%02x",
                           ROUTER_BUS, address, byte)
             except IOError:
+                log.exception("I2C retries exhausted: bus=%d address=0x%02x byte=0x%02x selected_port=%d",
+                              ROUTER_BUS, address, byte, self.selected)
                 app.globals.set_state(fsm.STATE_ERROR)
                 raise BartendroBrokenError("Cannot write to I2C interface.")
 
@@ -97,6 +99,7 @@ class DispenserSelect(object):
         try:
             self.router = smbus.SMBus(ROUTER_BUS)
         except IOError:
+            log.exception("Cannot open I2C router: bus=%d address=0x%02x", ROUTER_BUS, ROUTER_ADDRESS)
             app.globals.set_state(fsm.STATE_ERROR)
             raise BartendroBrokenError("Cannot open I2C interface.")
         log.debug("I2C router ready: bus=%d address=0x%02x", ROUTER_BUS, ROUTER_ADDRESS)

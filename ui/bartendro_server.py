@@ -10,6 +10,7 @@ import argparse
 import subprocess
 import traceback
 from datetime import time
+from time import monotonic
 
 from bartendro.global_lock import BartendroGlobalLock
 from bartendro.router import driver
@@ -154,9 +155,12 @@ logger.debug("Selected serial device: %s", device)
 startup_err = ""
 # Start the driver, which talks to the hardware
 try:
+    hardware_started = monotonic()
     app.driver = driver.RouterDriver(device, app.software_only)
     app.driver.open()
     logging.info("Found %d dispensers." % app.driver.count())
+    logger.debug("Hardware initialization complete: device=%s elapsed_ms=%.1f",
+                 device, (monotonic() - hardware_started) * 1000)
 except BartendroBrokenError:
     logger.exception("Hardware startup failed: device=%s", device)
     err = "Cannot open I2C interface to a router board. If a router board is connected, please turn off Bartendro, wait 3 seconds and then turn back on."
