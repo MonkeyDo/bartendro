@@ -65,10 +65,10 @@ def setup_options_table():
             log.info("option %s is not in DB." % opt)
             try:
                 value = getattr(config, opt)
-                log.info("Get option from legacy: %s" % value)
+                log.debug("Loading option %s from legacy config", opt)
             except AttributeError:
                 value = bartendro_options[opt]
-                log.info("Get option from defaults: %s" % value)
+                log.debug("Loading option %s from defaults", opt)
 
             log.info("Adding option '%s'" % opt)
             o = Option(opt, value)
@@ -101,7 +101,8 @@ def load_options(include_hardware=True):
                 raise BadConfigOptionsError
         except KeyError:
             # Ignore options we don't understand
-            pass
+            log.debug("Ignoring unknown option %s", o.key)
+            continue
 
         setattr(options, o.key, value)
 

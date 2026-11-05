@@ -132,15 +132,21 @@ try:
 except Exception:
     logger.exception("Startup failed while loading options")
     raise
+logger.debug("Startup version=%s pid=%d cwd=%s database=%s log_file=%s level=%s software_only=%s",
+             version.strip(), os.getpid(), os.getcwd(), os.path.join(BASE_DIR, "bartendro.db"),
+             handler.baseFilename, app.options.log_level, bool(app.software_only))
 
 # Create a memcache connection and flush everything
 app.mc = memcache.Client(['127.0.0.1:11211'], debug=0)
-app.mc.flush_all()
+logger.debug("Clearing memcache at 127.0.0.1:11211")
+if not app.mc.flush_all():
+    logger.error("Memcache flush failed at 127.0.0.1:11211")
 
 # Create the Bartendro globals to prevent multiple people from using it at the same time.
 app.globals = BartendroGlobalLock()
 
 device = determine_serial_device()
+logger.debug("Selected serial device: %s", device)
 
 startup_err = ""
 # Start the driver, which talks to the hardware

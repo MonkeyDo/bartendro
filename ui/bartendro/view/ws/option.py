@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import sqlite3
 import shutil
@@ -13,6 +14,8 @@ from sqlalchemy import text
 from bartendro.model.option import Option
 from bartendro.options import LOG_LEVELS, bartendro_options, load_options
 from bartendro.restart import restart_application
+
+log = logging.getLogger('bartendro')
 
 DB_BACKUP_DIR = '.db-backups'
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
@@ -43,7 +46,8 @@ def ws_options():
                 else:
                     raise InternalServerError
             except KeyError:
-                pass
+                log.debug("Ignoring unknown option %s", o.key)
+                continue
 
             data[o.key] = value
 
@@ -69,6 +73,7 @@ def ws_options():
 
         db.session.commit()
         app.options = load_options()
+        log.debug("Options saved and reloaded: keys=%s", sorted(data))
         reload = restart_application()
         return json.dumps({'reload': reload})
 
@@ -106,8 +111,7 @@ def ws_upload():
 @login_required
 def ws_upload_confirm():
     file_name = request.json['file_name']
-    print(file_name)
-    print("Move file '%s' into place." % file_name)
+    log.debug("Installing uploaded database: source=%s destination=%s", file_name, DB_FILE)
 
     if not os.path.exists(DB_BACKUP_DIR):
         try:
