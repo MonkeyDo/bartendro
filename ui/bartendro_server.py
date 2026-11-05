@@ -51,10 +51,10 @@ if os.path.exists("version.txt"):
     with open("version.txt", "r") as f:
         version = f.read()
 else:
-#    version = subprocess.check_output(["git", "rev-parse", "HEAD"])
-#    if version:
-#        version = "git commit " + str(version[:10], "utf-8")
-#    else:
+   version = subprocess.check_output(["git", "rev-parse", "HEAD"])
+   if version:
+       version = "commit#" + str(version[:10], "utf-8")
+   else:
     version = "[unknown]"
 
 LOG_FILES_SAVED = 10  # number of daily log archives to retain
