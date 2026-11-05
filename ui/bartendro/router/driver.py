@@ -3,7 +3,8 @@ import os
 import collections
 import logging
 from subprocess import call
-from time import sleep, localtime, time
+from time import sleep, localtime, time, monotonic
+from contextvars import ContextVar
 import serial
 from struct import pack, unpack
 from . import pack7
@@ -76,6 +77,9 @@ MOTOR_DIRECTION_FORWARD = 1
 MOTOR_DIRECTION_BACKWARD = 0
 
 log = logging.getLogger('bartendro')
+COMMAND_NAMES = {value: name for name, value in list(globals().items())
+                 if name.startswith('PACKET_') and isinstance(value, int)}
+packet_context = ContextVar('packet_context', default='no command context')
 
 
 def crc16_update(crc, a):
@@ -176,10 +180,14 @@ class RouterDriver(object):
             self.dispenser_select.select(port)
             sleep(DISCOVERY_SELECT_SETTLE)
             zero_reads = 0
+            attempt = 0
             while True:
+                attempt += 1
                 self.ser.flushInput()
                 self.ser.write(bytearray((63, 63, 63)))
                 data = self.ser.read(3)
+                log.debug("Discovery port=%d attempt=%d bytes=%d expected=3 data=%s timeout=%s",
+                          port, attempt, len(data), data.hex(), self.ser.timeout)
                 ll = ""
                 for ch in data:
                     ll += "%02X " % ch
@@ -218,23 +226,27 @@ class RouterDriver(object):
         if len(duplicate_ids):
             for dup in duplicate_ids:
                 if dup == -1: continue
-                self._log_startup("ERROR: Dispenser id conflict!\n")
+                self._log_startup("Dispenser ID conflict: pump_id=%d" % dup, logging.WARNING)
                 sent = False
                 for i, d in enumerate(self.dispenser_ids):
                     if d == dup:
                         if not sent:
                             self._send_packet8(i, PACKET_ID_CONFLICT, 0)
                             sent = True
-                        self._log_startup("  dispenser %d has id %d\n" % (i, d))
+                        self._log_startup("  dispenser=%d port=%d pump_id=%d excluded from discovery" % (i + 1, self.dispenser_ports[i], d), logging.WARNING)
                         self.dispenser_ids[i] = -1
                         self.num_dispensers -= 1
 
         self.dispenser_version = self.get_dispenser_version(0)
         if self.dispenser_version < 0:
             self.dispenser_version = DISPENSER_DEFAULT_VERSION
+            log.warning("Firmware detection failed for dispenser=1; assuming version=%d", self.dispenser_version)
         else:
             self.status.swap_blue_green()
-        log.info("Detected dispensers version %d. (Only checked first dispenser)" % self.dispenser_version)
+            log.debug("Detected firmware version=%d on dispenser=1", self.dispenser_version)
+        log.debug("Discovery complete: count=%d mapping=%s (dispenser, port, pump_id)",
+                  self.num_dispensers, [(i + 1, self.dispenser_ports[i], pump_id)
+                                        for i, pump_id in enumerate(self.dispenser_ids) if pump_id >= 0])
 
         self.led_idle()
 
@@ -286,8 +298,11 @@ class RouterDriver(object):
 
         # if it fails, re-try once.
         if not ret:
-            log.error("*** dispense command failed. re-trying once.")
+            log.debug("Retrying dispense: dispenser=%d ticks=%d speed=%d attempt=2", dispenser + 1, ticks, speed)
             ret = self._send_packet16(dispenser, PACKET_TICK_SPEED_DISPENSE, ticks, speed)
+            log.log(logging.DEBUG if ret else logging.ERROR,
+                    "Dispense retry %s: dispenser=%d ticks=%d speed=%d",
+                    "recovered" if ret else "exhausted", dispenser + 1, ticks, speed)
 
         return ret
 
@@ -459,11 +474,18 @@ class RouterDriver(object):
 
         import binascii
         hex = str(binascii.hexlify(bytearray(b)), "utf-8")
-        log.error(hex)
+        log.debug("Packet bytes: %s", hex)
 
 
     def _send_packet(self, dest, packet):
         if self.software_only: return True
+
+        port = self.dispenser_ports[dest] if dest != DEST_BROADCAST else 'broadcast'
+        context = "device=%s dispenser=%s port=%s pump_id=%d command=%s" % (
+            self.device, dest + 1 if dest != DEST_BROADCAST else 'broadcast', port,
+            packet[0], COMMAND_NAMES.get(packet[1], 'UNKNOWN(%d)' % packet[1]))
+        packet_context.set(context)
+        started = monotonic()
 
         self._select(dest)
         self.ser.flushInput()
@@ -472,61 +494,51 @@ class RouterDriver(object):
         crc = 0
         for ch in packet:
             crc = crc16_update(crc, ch)
-
         encoded = pack7.pack_7bit(packet + pack("<H", crc))
         if len(encoded) != RAW_PACKET_SIZE:
-            log.error("send_packet: Encoded packet size is wrong: %d vs %s" % (len(encoded), RAW_PACKET_SIZE))
+            log.error("Serial encoded length invalid: %s bytes=%d expected=%d", context, len(encoded), RAW_PACKET_SIZE)
             return False
 
         try:
-            t0 = time()
+            log.debug("Serial TX: %s timeout=%s data=%s", context, self.ser.timeout,
+                      (bytearray((255, 255)) + encoded).hex())
             written = self.ser.write(bytearray((255, 255)) + encoded)
             if written != RAW_PACKET_SIZE + 2:
-                log.error("*** send timeout")
-                log.error("*** dispenser: %d, type: %s" % (dest + 1, str(packet[1:2], "ascii")))
+                log.error("Serial short write: %s bytes=%s expected=%d", context, written, RAW_PACKET_SIZE + 2)
                 return False
-
             if dest == DEST_BROADCAST:
+                log.debug("Broadcast sent (no ACK expected): %s", context)
                 return True
-
-            ch = self.ser.read(1)
-            t1 = time()
-            log.debug("packet time: %f" % (t1 - t0))
-            if len(ch) < 1:
-                log.error("*** send packet: read timeout")
-                log.error("*** dispenser: %d, type: %s" % (dest + 1, str(packet[1:2], "ascii")))
+            ack = self.ser.read(1)
+            if len(ack) < 1:
+                log.error("Serial ACK read timeout: %s timeout=%s", context, self.ser.timeout)
                 return False
-        except SerialException as err:
-            log.error("SerialException: %s" % err)
+        except serial.SerialException:
+            log.exception("Serial I/O failed: %s elapsed_ms=%.1f",
+                          context, (monotonic() - started) * 1000)
             return False
 
-        ack = ch
+        log.debug("Serial ACK: %s data=%s elapsed_ms=%.1f",
+                  context, ack.hex(), (monotonic() - started) * 1000)
         if ack == PACKET_ACK_OK:
             return True
         if ack == PACKET_CRC_FAIL:
-            log.error("*** send_packet: packet ack crc fail")
-            log.error("*** dispenser: %d, type: %s" % (dest + 1, str(packet[1:2], "ascii")))
+            log.error("Serial packet CRC rejected: %s", context)
             return False
         if ack == PACKET_ACK_TIMEOUT:
-            log.error("*** send_packet: ack timeout")
-            log.error("*** dispenser: %d, type: %s" % (dest + 1, str(packet[1:2], "ascii")))
+            log.error("Serial device ACK timeout: %s", context)
             return False
         if ack == PACKET_ACK_INVALID:
-            log.error("*** send_packet: dispenser received invalid packet")
-            log.error("*** dispenser: %d, type: %s" % (dest + 1, str(packet[1:2], "ascii")))
+            log.error("Serial device received invalid packet: %s", context)
             return False
         if ack == PACKET_ACK_INVALID_HEADER:
-            log.error("*** send_packet: dispenser received invalid header")
-            log.error("*** dispenser: %d, type: %s" % (dest + 1, str(packet[1:2], "ascii")))
+            log.error("Serial device received invalid header: %s", context)
             return False
         if ack == PACKET_ACK_HEADER_IN_PACKET:
-            log.error("*** send_packet: header in packet error")
-            log.error("*** dispenser: %d, type: %s" % (dest + 1, str(packet[1:2], "ascii")))
+            log.error("Serial device received header inside packet: %s", context)
             return False
 
-        # if we get an invalid ack code, it might be ok.
-        log.error("send_packet: Invalid ACK code %s" % str(ch, "ascii"))
-        log.error("*** dispenser: %d, type: %s" % (dest + 1, str(packet[1:2], "ascii")))
+        log.error("Serial unknown ACK ack=%s: %s", ack.hex(), context)
         return False
 
     def _get_dispenser_id(self, dest):
@@ -567,8 +579,7 @@ class RouterDriver(object):
         while True:
             ch = self.ser.read(1)
             if len(ch) < 1:
-                if not quiet:
-                    log.error("receive packet: response timeout")
+                log.log(logging.DEBUG if quiet else logging.ERROR, "Serial response header timeout: %s timeout=%s", packet_context.get(), self.ser.timeout)
                 return (PACKET_ACK_TIMEOUT, "")
 
             if (ch == b"\xFF"):
@@ -581,17 +592,19 @@ class RouterDriver(object):
 
         ack = PACKET_ACK_OK
         raw_packet = self.ser.read(RAW_PACKET_SIZE)
+        log.debug("Serial RX: %s bytes=%d expected=%d data=%s", packet_context.get(),
+                  len(raw_packet), RAW_PACKET_SIZE, raw_packet.hex())
         if len(raw_packet) != RAW_PACKET_SIZE:
-            if not quiet:
-                log.error("receive packet: timeout")
+            log.log(logging.DEBUG if quiet else logging.ERROR, "Serial response short read: %s bytes=%d expected=%d timeout=%s",
+                      packet_context.get(), len(raw_packet), RAW_PACKET_SIZE, self.ser.timeout)
             ack = PACKET_ACK_TIMEOUT
 
         if ack == PACKET_ACK_OK:
             packet = pack7.unpack_7bit(raw_packet)
             if len(packet) != PACKET_SIZE:
                 ack = PACKET_ACK_INVALID
-                if not quiet:
-                    log.error("receive_packet: Unpacked length incorrect")
+                log.log(logging.DEBUG if quiet else logging.ERROR, "Serial decoded length invalid: %s bytes=%d expected=%d",
+                          packet_context.get(), len(packet), PACKET_SIZE)
 
             if ack == PACKET_ACK_OK:
                 received_crc = unpack("<H", packet[6:8])[0]
@@ -602,15 +615,14 @@ class RouterDriver(object):
                     crc = crc16_update(crc, ch)
 
                 if received_crc != crc:
-                    if not quiet:
-                        log.error("receive_packet: CRC fail")
+                    log.log(logging.DEBUG if quiet else logging.ERROR, "Serial CRC mismatch: %s received=%04x calculated=%04x",
+                              packet_context.get(), received_crc, crc)
                     ack = PACKET_ACK_CRC_FAIL
 
         # Send the response back to the dispenser
         written = self.ser.write(ack)
         if written != 1:
-            if not quiet:
-                log.error("receive_packet: wrote %s bytes response" % written)
+            log.log(logging.DEBUG if quiet else logging.ERROR, "Serial response ACK short write: %s bytes=%s expected=1", packet_context.get(), written)
             ack = PACKET_ACK_TIMEOUT
 
         if ack == PACKET_ACK_OK:
@@ -645,6 +657,6 @@ class RouterDriver(object):
     def _clear_startup_log(self):
         self.startup_log = ""
 
-    def _log_startup(self, txt):
-        log.info(txt)
+    def _log_startup(self, txt, level=logging.DEBUG):
+        log.log(level, txt)
         self.startup_log += "%s\n" % txt
