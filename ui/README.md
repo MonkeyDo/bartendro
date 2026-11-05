@@ -62,6 +62,30 @@ it can, short of actually communicating with the hardware. If you are running in
 software only mode, you do no need to run the bartendro_server.py program under sudo. Sudo
 rights are only needed to communicate with the hardware.
 
+Debug logs
+----------
+Logs are written to `ui/logs/bartendro.log` and are rotated every day at 6AM,
+so that a single session should be contained in one log file.
+We keep the last 10 log files and automatically remove older ones.
+
+Select **Debug** under **General options → Logging level** to include verbose logging
+from pretty much every part of the application, so you can debug what the hell is going on.
+It will include hardware communications, operation start/completion messages, state transitions,
+serial/I²C diagnostics and webserver logs. With the standard startup scripts,
+
+Tracing operations in logs
+--------------------------
+
+Application logs include a random operation ID, such as `[op=a1b2c3d4e5f6]`. This groups
+messages from an instrumented operation (such as pouring a drink), including its
+nested mixer and hardware calls. Search for the same ID to follow the operation
+from request to completion or failure, even when other operations' logs are mixed
+in. `[op=-]` means the message has no active operation context.
+
+```sh
+grep -F '[op=a1b2c3d4e5f6]' ui/logs/bartendro.log
+```
+
 Upgrade Existing DB
 -------------------
 
