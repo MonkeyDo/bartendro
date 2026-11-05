@@ -11,7 +11,7 @@ from flask_login import login_required, logout_user
 from werkzeug.exceptions import InternalServerError, BadRequest
 from sqlalchemy import text
 from bartendro.model.option import Option
-from bartendro.options import bartendro_options, load_options
+from bartendro.options import LOG_LEVELS, bartendro_options, load_options
 from bartendro.restart import restart_application
 
 DB_BACKUP_DIR = '.db-backups'
@@ -55,6 +55,9 @@ def ws_options():
             logout = request.json['logout']
         except KeyError:
             raise BadRequest
+
+        if data.get('log_level', 'INFO') not in LOG_LEVELS:
+            raise BadRequest("Invalid logging level")
 
         if logout: logout_user()
 
