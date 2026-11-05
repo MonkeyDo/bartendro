@@ -9,6 +9,7 @@ import sys
 import argparse
 import subprocess
 import traceback
+from datetime import time
 
 from bartendro.global_lock import BartendroGlobalLock
 from bartendro.router import driver
@@ -54,8 +55,7 @@ else:
 #    else:
     version = "[unknown]"
 
-LOG_SIZE = 1024 * 500  # 500k maximum log file size
-LOG_FILES_SAVED = 3  # number of log files to compress and save
+LOG_FILES_SAVED = 10  # number of daily log archives to retain
 
 parser = argparse.ArgumentParser(description='Bartendro application process')
 parser.add_argument("-d",
@@ -96,9 +96,12 @@ try again:
 if not os.path.exists("logs"):
     os.mkdir("logs")
 
-handler = logging.handlers.RotatingFileHandler(os.path.join("logs", "bartendro.log"),
-                                               maxBytes=LOG_SIZE,
-                                               backupCount=LOG_FILES_SAVED)
+# Rotate at 6 AM local time so evening and overnight logs stay together across restarts.
+handler = logging.handlers.TimedRotatingFileHandler(
+    os.path.join("logs", "bartendro.log"),
+    when='midnight',
+    atTime=time(6, 0),
+    backupCount=LOG_FILES_SAVED)
 log_formatter = logging.Formatter(
     '%(asctime)s %(levelname)s [%(name)s] %(message)s',
     datefmt='%Y-%m-%dT%H:%M:%S%z')
