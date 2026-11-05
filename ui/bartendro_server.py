@@ -103,8 +103,8 @@ handler = logging.handlers.TimedRotatingFileHandler(
     atTime=time(6, 0),
     backupCount=LOG_FILES_SAVED)
 log_formatter = logging.Formatter(
-    '%(asctime)s %(levelname)s [%(name)s] %(message)s',
-    datefmt='%Y-%m-%dT%H:%M:%S%z')
+    '%(asctime)s.%(msecs)03d %(levelname)s [%(name)s] %(message)s',
+    datefmt='%Y-%m-%dT%H:%M:%S')
 logging.basicConfig(level=logging.INFO)
 root_logger = logging.getLogger()
 for console_handler in root_logger.handlers:
