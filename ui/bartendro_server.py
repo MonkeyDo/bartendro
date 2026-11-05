@@ -231,7 +231,7 @@ else:
                              deleted_drink.name.name)
                 sys.exit(-1)
             else:
-                logging.info("Verified 'Deleted Drink' placeholder exists at ID 1")
+                logging.debug("Verified 'Deleted Drink' placeholder exists at ID 1")
 
             app.mixer = mixer.Mixer(app.driver, app.mc)
             if app.software_only:
