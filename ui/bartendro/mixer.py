@@ -571,9 +571,9 @@ class Mixer(object):
 
                 dispenser.out = LL_OK
 
-            log.debug("Calculated liquid level: dispenser=%d remaining_ml=%s out_threshold=%d low_threshold=%d state=%s",
-                      i + 1, dispenser.actual, CALCULATED_LIQUID_OUT_THRESHOLD,
-                      CALCULATED_LIQUID_LOW_THRESHOLD, LL_STATE_NAMES[dispenser.out])
+            log.debug("Calculated liquid level: dispenser=%d state=%s remaining_ml=%s out_threshold=%d low_threshold=%d",
+                      i + 1,  LL_STATE_NAMES[dispenser.out], dispenser.actual, 
+                      CALCULATED_LIQUID_OUT_THRESHOLD, CALCULATED_LIQUID_LOW_THRESHOLD)
 
         db.session.commit()
 
