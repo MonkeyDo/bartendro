@@ -16,6 +16,18 @@ class OperationFilter(logging.Filter):
         return True
 
 
+class WerkzeugLogFilter(logging.Filter):
+    """Lower Werkzeug INFO messages (including HTTP requests) to DEBUG; preserve other levels."""
+
+    def filter(self, record):
+        if record.levelno == logging.INFO:
+            record.levelno = logging.DEBUG
+            record.levelname = 'DEBUG'
+        # Werkzeug pins its logger to INFO. Check the remapped level against the
+        # root logger, which follows the user's setting, rather than that fixed level.
+        return logging.getLogger().isEnabledFor(record.levelno)
+
+
 def log_operation(function):
     @wraps(function)
     def wrapped(*args, **kwargs):
