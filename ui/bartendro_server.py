@@ -99,9 +99,16 @@ if not os.path.exists("logs"):
 handler = logging.handlers.RotatingFileHandler(os.path.join("logs", "bartendro.log"),
                                                maxBytes=LOG_SIZE,
                                                backupCount=LOG_FILES_SAVED)
-logging.basicConfig(format='%(levelname)s: %(message)s', level=logging.INFO)
+log_formatter = logging.Formatter(
+    '%(asctime)s %(levelname)s [%(name)s] %(message)s',
+    datefmt='%Y-%m-%dT%H:%M:%S%z')
+logging.basicConfig(level=logging.INFO)
+root_logger = logging.getLogger()
+for console_handler in root_logger.handlers:
+    console_handler.setFormatter(log_formatter)
+handler.setFormatter(log_formatter)
+root_logger.addHandler(handler)
 logger = logging.getLogger('bartendro')
-logger.addHandler(handler)
 logger.info("Bartendro start up sequence:")
 
 try:
