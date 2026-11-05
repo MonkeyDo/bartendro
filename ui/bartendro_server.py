@@ -125,6 +125,14 @@ if not os.path.exists(os.path.join(BASE_DIR, "bartendro.db")):
     print("bartendro.db in order to provide Bartendro with a starting database.")
     sys.exit(-1)
 
+# Apply the saved verbosity before hardware discovery begins.
+try:
+    with app.app_context():
+        app.options = load_options(include_hardware=False)
+except Exception:
+    logger.exception("Startup failed while loading options")
+    raise
+
 # Create a memcache connection and flush everything
 app.mc = memcache.Client(['127.0.0.1:11211'], debug=0)
 app.mc.flush_all()
@@ -176,43 +184,47 @@ if app.startup_err:
     logger.info("Bartendro failed to start:")
     logger.error(err)
 else:
-    with app.app_context():
-        app.options = load_options()
+    try:
+        with app.app_context():
+            configure_hardware_options(app.options)
 
-        # Verify that drink ID 1 is the "Deleted Drink" placeholder, create if missing
-        from bartendro.model.drink import Drink
-        from bartendro.model.drink_name import DrinkName
-        from bartendro import db
+            # Verify that drink ID 1 is the "Deleted Drink" placeholder, create if missing
+            from bartendro.model.drink import Drink
+            from bartendro.model.drink_name import DrinkName
+            from bartendro import db
         
-        deleted_drink = Drink.query.filter_by(id=1).first()
-        if not deleted_drink:
-            logging.info("Creating 'Deleted Drink' placeholder at ID 1")
-            # Create the drink_name entry
-            deleted_name = DrinkName(name="Deleted Drink", sortname="deleted drink")
-            db.session.add(deleted_name)
-            db.session.flush()
+            deleted_drink = Drink.query.filter_by(id=1).first()
+            if not deleted_drink:
+                logging.info("Creating 'Deleted Drink' placeholder at ID 1")
+                # Create the drink_name entry
+                deleted_name = DrinkName(name="Deleted Drink", sortname="deleted drink")
+                db.session.add(deleted_name)
+                db.session.flush()
             
-            # Use raw SQL to insert with specific ID 1
-            from sqlalchemy import text
-            db.session.execute(text(
-                "INSERT INTO drink (id, name_id, desc, sugg_size, popular, available) VALUES (1, :name_id, 'This drink has been deleted', 0, 0, 0)"
-            ), {'name_id': deleted_name.id})
-            db.session.commit()
-            logging.info("Created 'Deleted Drink' placeholder at ID 1")
-        elif deleted_drink.name.name != "Deleted Drink":
-            print(f"ERROR: Drink ID 1 must be named 'Deleted Drink', but found '{deleted_drink.name.name}'.")
-            print("Please fix the database before starting the server.")
-            sys.exit(-1)
-        else:
-            logging.info("Verified 'Deleted Drink' placeholder exists at ID 1")
+                # Use raw SQL to insert with specific ID 1
+                from sqlalchemy import text
+                db.session.execute(text(
+                    "INSERT INTO drink (id, name_id, desc, sugg_size, popular, available) VALUES (1, :name_id, 'This drink has been deleted', 0, 0, 0)"
+                ), {'name_id': deleted_name.id})
+                db.session.commit()
+                logging.info("Created 'Deleted Drink' placeholder at ID 1")
+            elif deleted_drink.name.name != "Deleted Drink":
+                logger.error("Startup stopped: drink ID 1 must be named 'Deleted Drink', found %r. Fix the database before starting.",
+                             deleted_drink.name.name)
+                sys.exit(-1)
+            else:
+                logging.info("Verified 'Deleted Drink' placeholder exists at ID 1")
 
-        app.mixer = mixer.Mixer(app.driver, app.mc)
-        if app.software_only:
-            logging.info("Running SOFTWARE ONLY VERSION. No communication between software and hardware chain will happen!")
+            app.mixer = mixer.Mixer(app.driver, app.mc)
+            if app.software_only:
+                logging.info("Running SOFTWARE ONLY VERSION. No communication between software and hardware chain will happen!")
 
-        logging.info("Bartendro started")
-        app.debug = args.debug
-        app.version = version
+            logging.info("Bartendro started")
+            app.debug = args.debug
+            app.version = version
+    except Exception:
+        logger.exception("Startup failed during database validation or mixer initialization")
+        raise
 
 if __name__ == '__main__':
     app.run(host=args.host, port=args.port)
