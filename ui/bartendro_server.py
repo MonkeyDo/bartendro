@@ -121,8 +121,8 @@ except KeyError:
     app.software_only = 0
 
 if not os.path.exists(os.path.join(BASE_DIR, "bartendro.db")):
-    print("bartendro.db file not found. Please copy bartendro.db.default to ")
-    print("bartendro.db in order to provide Bartendro with a starting database.")
+    logger.error("Database missing: %s. Copy bartendro.db.default to this path.",
+                 os.path.join(BASE_DIR, "bartendro.db"))
     sys.exit(-1)
 
 # Apply the saved verbosity before hardware discovery begins.
@@ -149,6 +149,7 @@ try:
     app.driver.open()
     logging.info("Found %d dispensers." % app.driver.count())
 except BartendroBrokenError:
+    logger.exception("Hardware startup failed: device=%s", device)
     err = "Cannot open I2C interface to a router board. If a router board is connected, please turn off Bartendro, wait 3 seconds and then turn back on."
     if have_uwsgi:
         startup_err = err
@@ -159,6 +160,7 @@ except BartendroBrokenError:
         print_software_only_notice()
         sys.exit(-1)
 except SerialIOError:
+    logger.exception("Serial startup failed: device=%s", device)
     err = "Cannot open serial interface to a router board."
     if have_uwsgi:
         startup_err = err
@@ -169,6 +171,7 @@ except SerialIOError:
         print_software_only_notice()
         sys.exit(-1)
 except:
+    logger.exception("Unexpected hardware startup failure: device=%s", device)
     err = traceback.format_exc()
     if have_uwsgi:
         startup_err = err

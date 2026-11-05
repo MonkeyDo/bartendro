@@ -1,4 +1,5 @@
 import json
+import logging
 from time import sleep
 from operator import itemgetter
 from bartendro import app, db, mixer
@@ -11,6 +12,9 @@ from bartendro.model.booze import Booze
 from bartendro.model.drink_booze import DrinkBooze
 from bartendro.model.dispenser import Dispenser
 from bartendro.error import BartendroBusyError, BartendroBrokenError, BartendroCantPourError, BartendroCurrentSenseError
+
+
+log = logging.getLogger('bartendro')
 
 
 def ws_make_drink(drink_id):
@@ -140,6 +144,7 @@ def ws_drink_delete(drink_id):
         db.session.delete(drink)
         db.session.commit()
     except Exception as e:
+        log.exception("Drink deletion failed: drink_id=%s", drink_id)
         db.session.rollback()
         raise BadRequest(f"Failed to delete drink: {str(e)}")
     
