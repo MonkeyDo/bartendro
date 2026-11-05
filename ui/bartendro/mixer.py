@@ -10,6 +10,7 @@ from sqlalchemy.orm import mapper, relationship, backref
 from sqlalchemy import text
 from bartendro import db, app
 from bartendro import fsm
+from bartendro.diagnostics import log_operation
 from bartendro.clean import CleanCycle
 from bartendro.pourcomplete import PourCompleteDelay
 from bartendro.router.driver import MOTOR_DIRECTION_FORWARD
@@ -113,6 +114,7 @@ class Mixer(object):
                 db.session.add(dlog)
                 db.session.commit()
 
+    @log_operation
     def do_event(self, event):
         cur_state = app.globals.get_state()
 

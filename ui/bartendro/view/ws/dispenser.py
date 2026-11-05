@@ -1,6 +1,6 @@
 import logging
 from time import sleep
-from werkzeug.exceptions import ServiceUnavailable
+from werkzeug.exceptions import ServiceUnavailable, BadRequest, InternalServerError
 from bartendro import app, db, mixer
 from flask import Flask, request
 from flask_login import current_user
@@ -9,6 +9,7 @@ from bartendro.model.booze import Booze
 from bartendro.model.dispenser import Dispenser
 from bartendro.form.booze import BoozeForm
 from bartendro import fsm
+from bartendro.diagnostics import log_operation
 from bartendro.error import BartendroBusyError, BartendroBrokenError, BartendroCantPourError, BartendroCurrentSenseError
 from bartendro.router.driver import MOTOR_DIRECTION_FORWARD, MOTOR_DIRECTION_BACKWARD
 
@@ -31,6 +32,7 @@ def ws_dispenser_reverse(disp):
     return run_dispenser(disp, False)
 
 
+@log_operation
 def run_dispenser(disp, forward):
     log.debug("Manual pump start: dispenser=%d forward=%s", disp, forward)
     if forward:
@@ -47,6 +49,7 @@ def run_dispenser(disp, forward):
 
 
 @app.route('/ws/dispenser/<int:disp>/off')
+@log_operation
 def ws_dispenser_off(disp):
     if app.options.must_login_to_dispense and not current_user.is_authenticated():
         return "login required"
