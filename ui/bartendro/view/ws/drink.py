@@ -4,7 +4,7 @@ from time import sleep
 from operator import itemgetter
 from bartendro import app, db, mixer
 from bartendro.diagnostics import log_operation
-from flask import Flask, request
+from flask import Flask, request, jsonify
 from flask_login import login_required, current_user
 from werkzeug.exceptions import ServiceUnavailable, BadRequest, InternalServerError
 from bartendro.model.drink import Drink
@@ -30,7 +30,9 @@ def ws_make_drink(drink_id):
     try:
         app.mixer.make_drink(drink, recipe)
     except mixer.BartendroCantPourError as err:
-        raise BadRequest(err)
+        response = jsonify(error=str(err))
+        response.status_code = 400
+        raise BadRequest(str(err), response=response)
     except mixer.BartendroBrokenError as err:
         raise InternalServerError(err)
     except mixer.BartendroBusyError as err:

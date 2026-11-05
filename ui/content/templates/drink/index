@@ -148,6 +148,7 @@
   <p>
       Bartendro can't make this drink right now. Sorry!
   </p>
+  <p id="cant-make-reason" style="display: none"></p>
 </div>
 <div id="error-dialog" title="Bartendro error" style="display: none; text-align: center">
   <p>
@@ -462,7 +463,18 @@ function make_drink(drink, is_taster)
                     $("#busy-dialog").dialog({ buttons: [ { text: "Ok", click: function() { $( this ).dialog( "close" ); } } ] });
                 else
                 if (xmlhttp.status == 400)
+                {
+                    var reason = "";
+                    try {
+                        var response = JSON.parse(xmlhttp.responseText);
+                        if (response && typeof response.error === "string")
+                            reason = response.error;
+                    } catch (e) {
+                        // Keep the generic message if the server did not return JSON.
+                    }
+                    $("#cant-make-reason").text(reason).toggle(reason.length > 0);
                     $("#cant-make-dialog").dialog({ buttons: [ { text: "Ok", click: function() { $( this ).dialog( "close" ); window.location = "/"; } } ] });
+                }
                 else
                     $("#error-dialog").dialog({ buttons: [ { text: "Ok", click: function() { $( this ).dialog( "close" ); window.location = "/"; } } ] });
             }
