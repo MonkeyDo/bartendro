@@ -1,36 +1,32 @@
-      'cxxxxxxxxxxxxxxxxxkkkkkxxddddddxxxxxxdddooddxxxxxdddooooddddoddxxxxxxxxxdddooddc               
-       cxxxxxxxxxdxxxxxxkkkkkkkxddddxxkkkkkxxxdddxkkkkkkxxdooooodxxxdxxxxxxxxxxddoooddc               
-       cxxxxxxxxxxxxkxxkxxxxxxddxxxxxkxxddddoooooooxxxxxxxxdooooodxxkkkxxxxxxxxxddodddc               
-       cxxxxxxxxxxkkkxOOOkkkkxxxxxxxxxdddddool:;;,',codddddoooodooddxxxxkxxxxxxxddodddc               
-       cxxxxxxkkkOkkxxkOkOOOOOOkkxxxxkkkxdddo:'''''',,cdddddoooddddxkkkOOkkOOkxddoddddc               
-       cxxxxxxkkOOkxkOOOOOOOkkkxxxxxxxkkxxddl:::::cc:,,dkxxdooodxxkkkOOOOkxkkkxddoddddc               
-       cxkkkkkxxxxxkOOOOkkkxxxxkkxxkkxxxxxdo:ccccllll:;odooddooodddxkkOOOOkxddxxxddxxxc               
-       lkOOOOOkxxxkO0OOkxxxxxxOOkxxxxxkOOOkdlc;:clccl:cxddoddoodddddddxkOOkxdddxxxxkxxl               
-       lOOOOOOOkxxkOkkxxkOOkkxOOkxxkOOOOOOkooc::cllllcoxkkxdooodxxddddddxkkkxddxxkOOOkl               
-       lOOOOOOOOxxxxxxxxkOOkkxkkkxxkkO00OOkxoc::cllllodxkkxxdoodxxddxkxdddxxkxxkOO0000o               
-       lOOOOOOOkxxkxxkkxxxkxxOOkxxxkO000OOOkxl:::lllldxxxxxxooooddddxkxxdddddxxk000000o               
-       lOOOOOOOkxxOkxxxxkxxxOOOOxxxxxkOOOOkddoccclllloxxxxxdoooodxxxxxdddkxdxxxkO00000d               
-       lOOOOkxxxxkkOkxxkOOOxkOOkxxxkkxkkkxddddc::cllo;,cooodddoodxkxdxkxdddxkkxkO00000d               
-       ckkkxxxdddddddxdxkOOkkOOkxxxxxxxxddddxdc::ccld;...'',;::coxxxxkkkdddkOkkxxkO000d               
-       cdxxxkkxxkkkxxxxdxkkkxkOkdddxkkkkdollddccccodl'...........;ddxkkxoodddxxxxxxOO0o               
-       cddxkkkkkkkkxdkkxddkxddxddddkOkxdl;''ooc:codl'.............odxkxdddodxkxxxkkxkkl               
-       cddxkkkkkkkxddxxddddxkkxddddxko:,'...;:::cc:'..............;odddoxxdddxkkkOOOkxl               
-       cddkkkkkkkkxddddddddxkOOxddddo'.......,::::;................ldooodddodxkkkkOOkxl               
-       cdxkkkxxdddddxkxdddddkkkxddddl........'cl;;'................'ldoodxddddxxkkkOOkl               
-       cddddxxxdddxkkxxddxddxkkxdddxd'.......'ll;;...................;lodkkxxdddddxkOkl               
-       cdddxkkkxddxkkxddxxdddkkxdddxd,.......'::;,,:ccc:'.............':okkOOkddddddxxl               
-       cdxkkkkkxdodxkxddxdddxxkxdddxd;........;,,'.;:ccc:,...............okOOkxxkkkkxxl               
-       cddxkkkxdoddxxxdxdddxxxxxddxxd;........;,,..';::ccc...............ckkxxdxkxkOOkl               
-       cdddxxxddxxxdoooodxkxxdddddxddl'.......,,'......';;...............;xxxdxxxxkOOkl               
-       cxxddddxxkkxdooodxkkOkxddddddxd,.......,,'............''..........;ddxkkxdddkxxl               
-       cxxxdddxxxxxddodxxkkkkkxddddxkd;...,...,,'......................,coodxkkkxdodxko               
-       cxkxddxkkkkkxdooxxkkOkkxxdddxxl'.......,'...............coolodddxxooddxxxxdodxkl               
-       cxxxddxkkkkkxdooodkkkxxxddolc:'........,'...............ldddddxxddoodxxxxxxddkOo               
-       cxxdddxxxxxxxooddddxdxxxddllc:'........'................cdddddddddoodxxxxxxddxko               
-       cxxdodxxxxxxxoodxdddxkkxxdoclc,..''...','...............;ddddddddddodxxxxxxddxko               
-       cdddoodxxxxxdoodddddxkkxddolcccldo,...,;'................ldddddddddddxxxxxxdddkl               
-       :dxdodxxxxxxdoodoodddxkdddoodooooc....,;'................cddddddddddddddddddddxl               
-       :dddodxxxxxxxdooodxxddddooooodddo;...';;'................:dddddddddddxxxxxxxddxl               
-       :ddoodxxxxxxdooodxxxddooooooddddl,...,;;'................,dddddddddddxxxxxxxdddc               
-       :ddoodxxxxxxdoodddddddoooooddxxo,....;;;,.................oddddddddddxxxxxxxdddc               
-       :oooooddddddoooooddddooooooddddl.....;:;,.................ldddddddddddxxxxxxdddc'               
+kkkkxdddd<yes-you-just-got-rick-rolled>xxdxxxxxxxx
+xxxddxxxxxkxxddddoooooooxxxxxxxxdooooodxxkkkxxxxxx
+kkxxxxxxxxxdddddool:;;,',codddddoooodooddxxxxkxxxx
+OOOOkkxxxxkkkxdddo:'''''',,cdddddoooddddxkkkOOkkOO
+Okkkxxxxxxxkkxxddl:::::cc:,,dkxxdooodxxkkkOOOOkxkk
+xxxxkkxxkkxxxxxdo:ccccllll:;odooddooodddxkkOOOOkxd
+xxxOOkxxxxxkOOOkdlc;:clccl:cxddoddoodddddddxkOOkxd
+kkxOOkxxkOOOOOOkooc::cllllcoxkkxdooodxxddddddxkkkx
+kkxkkkxxkkO00OOkxoc::cllllodxkkxxdoodxxddxkxdddxxk
+xxOOkxxxkO000OOOkxl:::lllldxxxxxxooooddddxkxxddddd
+xOOOOxxxxxkOOOOkddoccclllloxxxxxdoooodxxxxxdddkxdx
+xkOOkxxxkkxkkkxddddc::cllo;,cooodddoodxkxdxkxdddxk
+kkOOkxxxxxxxxddddxdc::ccld;...'',;::coxxxxkkkdddkO
+kxkOkdddxkkkkdollddccccodl'...........;ddxkkxooddd
+xddxddddkOkxdl;''ooc:codl'.............odxkxdddodx
+xkkxddddxko:,'...;:::cc:'..............;odddoxxddd
+xkOOxddddo'.......,::::;................ldooodddod
+dkkkxddddl........'cl;;'................'ldoodxddd
+dxkkxdddxd'.......'ll;;...................;lodkkxx
+ddkkxdddxd,.......'::;,,:ccc:'.............':okkOO
+dxxkxdddxd;........;,,'.;:ccc:,...............okOO
+xxxxxddxxd;........;,,..';::ccc...............ckkx
+xxdddddxddl'.......,,'......';;...............;xxx
+Okxddddddxd,.......,,'............''..........;ddx
+kkkxddddxkd;...,...,,'......................,coodx
+Okkxxdddxxl'....Memento Mori........coolodddxxoodd
+kxxxddolc:'........,'...............ldddddxxddoodx
+dxxxddllc:'...Rob 'Mayhem' Kaye......cdddddddddood
+xkkxxdoclc,..''...','...............;ddddddddddodx
+xkkxddolcccldo,..Enjoy Bartendro.....ldddddddddddx
+dxkdddoodooooc....,;'................cdddddddddddd
+ddddooooodddo;...';;'................:dddddddddddx
