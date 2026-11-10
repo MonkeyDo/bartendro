@@ -182,6 +182,8 @@ check_ap_configuration_files() {
     check_file_contains /etc/hostapd/hostapd.conf "^wpa=2$" "hostapd WPA2 is enabled"
 
     check_file_contains /etc/dnsmasq.d/bartendro-ap.conf "^interface=${WIFI_INTERFACE}$" "dnsmasq uses ${WIFI_INTERFACE}"
+    check_file_contains /etc/dnsmasq.d/bartendro-ap.conf "^except-interface=lo$" "captive DNS excludes loopback"
+    check_file_contains /etc/default/dnsmasq '^DNSMASQ_EXCEPT=.*lo' "dnsmasq is excluded from the system resolver"
     check_file_contains /etc/dnsmasq.d/bartendro-ap.conf "^dhcp-range=${DHCP_RANGE_START},${DHCP_RANGE_END},255\\.255\\.255\\.0,15m$" "dnsmasq DHCP range is expected"
     check_file_contains /etc/dnsmasq.d/bartendro-ap.conf "^address=/bartendro\\.local/${AP_ADDRESS}$" "dnsmasq resolves bartendro.local"
     check_file_contains /etc/dnsmasq.d/bartendro-ap.conf "^address=/#/${AP_ADDRESS}$" "dnsmasq captive DNS catch-all is enabled"

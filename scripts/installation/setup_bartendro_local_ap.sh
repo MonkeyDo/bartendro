@@ -170,9 +170,22 @@ write_dnsmasq_config() {
     log "Writing dnsmasq DHCP and captive DNS configuration"
 
     install -d -m 0755 /etc/dnsmasq.d
+    # Debian's dnsmasq service otherwise registers 127.0.0.1 with resolvconf,
+    # sending the Pi's own internet lookups to our captive DNS catch-all.
+    # Preserve any other interface exclusions in the existing defaults.
+    touch /etc/default/dnsmasq
+    if ! grep -q '^# Bartendro: keep captive DNS out of the system resolver$' /etc/default/dnsmasq; then
+        cat >>/etc/default/dnsmasq <<'EOF'
+
+# Bartendro: keep captive DNS out of the system resolver
+DNSMASQ_EXCEPT="${DNSMASQ_EXCEPT:+${DNSMASQ_EXCEPT} }lo"
+EOF
+    fi
+
     cat >/etc/dnsmasq.d/bartendro-ap.conf <<EOF
 # Serve addresses only on the Bartendro Wi-Fi interface.
 interface=${WIFI_INTERFACE}
+except-interface=lo
 bind-dynamic
 
 # DHCP lease pool for devices connected to the bartendro access point.
@@ -335,6 +348,12 @@ enable_services() {
     systemctl unmask hostapd || true
     systemctl enable avahi-daemon memcached bartendro-wlan0 hostapd dnsmasq bartendro nginx
     systemctl restart avahi-daemon memcached bartendro-wlan0 hostapd dnsmasq bartendro nginx
+
+    # Remove registration left by an earlier installation. Ethernet's DHCP
+    # resolver remains managed by the network manager, including on reconnect.
+    if command -v resolvconf >/dev/null 2>&1; then
+        resolvconf -d lo.dnsmasq
+    fi
 }
 
 main() {

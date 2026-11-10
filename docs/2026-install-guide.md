@@ -84,6 +84,8 @@ sudo check-bartendro-setup
 ```
 (Scripts are in the folder `/usr/local/sbin/`)
 
+* Ethernet can stay connected to an internet router while Wi-Fi runs the local access point. The Pi uses Ethernet's DHCP-provided route and DNS for updates and Python package downloads; Wi-Fi clients retain the local captive portal. This does not provide internet sharing to Wi-Fi clients. Use different subnets for Ethernet and the access point (the default AP subnet is `10.0.0.0/24`).
+
 * Reboot for good luck. Now the Pi should create a Wi-Fi network using the SSID/password selected in the wizard.
 * Once done rebooting, connect to bartendro's Wi-Fi with the user/password selected in the wizard. (defaults: `bartendro`/`bartendro`) You can use a phone, laptop or tablet for this. Your device may give an error that the network does not have internet connectivity, this is by design, you can safely ignore this.
 * Once connected use the web-browser to connect to the app at `http://bartendro.local/` - this should load up the bartendro main page
