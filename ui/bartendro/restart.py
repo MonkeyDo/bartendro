@@ -1,5 +1,8 @@
 import os
 import subprocess
+import logging
+
+log = logging.getLogger('bartendro')
 
 
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
@@ -8,6 +11,7 @@ BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 def restart_application():
     try:
         import uwsgi
+        log.debug("Requesting application restart via uWSGI")
         uwsgi.reload()
         return True
     except ImportError:
@@ -15,18 +19,20 @@ def restart_application():
 
     script = find_restart_script()
     if not script:
+        log.error("Cannot restart application: no executable restart script found")
         return False
 
     try:
-        subprocess.Popen(
+        process = subprocess.Popen(
             [script],
             close_fds=True,
             start_new_session=True,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
+            # Inherit output so script failures remain visible in the service journal/console.
         )
+        log.debug("Restart script launched: path=%s pid=%d (completion not yet confirmed)", script, process.pid)
         return True
     except OSError:
+        log.exception("Failed to launch restart script: path=%s", script)
         return False
 
 

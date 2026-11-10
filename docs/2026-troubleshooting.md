@@ -2,6 +2,13 @@
 
 # The code is broken!
 
+### Tracing a failed drink or hardware operation
+
+Use the `[op=...]` field in the application logs to find messages belonging to the
+same operation. Enable Debug logging in the options screen for hardware details.
+See [Tracing operations in logs](../ui/README.md#tracing-operations-in-logs) for an
+example and an explanation of operation IDs.
+
 ### Forgot the password or want to set a new one?  
 navigate to the `http://bartendro.local/admin/lost-passwd` webpage when connected to Bartendro Wi-Fi
 

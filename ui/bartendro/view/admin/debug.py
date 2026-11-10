@@ -1,4 +1,5 @@
 import time
+import logging
 from bartendro import app, db
 from flask import Flask, request, render_template
 from flask_login import login_required
@@ -18,7 +19,7 @@ def debug_index():
         lines = lines[-LOG_LINES_TO_SHOW:]
         bartendro_log = "".join(lines)
     except IOError as e:
-        print("file open fail")
+        logging.getLogger('bartendro').exception("Cannot read logs/bartendro.log for the debug page")
         bartendro_log = "%s" % e
 
     return render_template("admin/debug",

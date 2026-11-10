@@ -1,8 +1,10 @@
 import json
+import logging
 from time import sleep
 from operator import itemgetter
 from bartendro import app, db, mixer
-from flask import Flask, request
+from bartendro.diagnostics import log_operation
+from flask import Flask, request, jsonify
 from flask_login import login_required, current_user
 from werkzeug.exceptions import ServiceUnavailable, BadRequest, InternalServerError
 from bartendro.model.drink import Drink
@@ -13,7 +15,12 @@ from bartendro.model.dispenser import Dispenser
 from bartendro.error import BartendroBusyError, BartendroBrokenError, BartendroCantPourError, BartendroCurrentSenseError
 
 
+log = logging.getLogger('bartendro')
+
+
+@log_operation
 def ws_make_drink(drink_id):
+    log.debug("Drink request: drink_id=%s method=%s path=%s", drink_id, request.method, request.path)
     recipe = {}
     for arg in request.args:
         disp = int(arg[5:])
@@ -23,7 +30,9 @@ def ws_make_drink(drink_id):
     try:
         app.mixer.make_drink(drink, recipe)
     except mixer.BartendroCantPourError as err:
-        raise BadRequest(err)
+        response = jsonify(error=str(err))
+        response.status_code = 400
+        raise BadRequest(str(err), response=response)
     except mixer.BartendroBrokenError as err:
         raise InternalServerError(err)
     except mixer.BartendroBusyError as err:
@@ -61,7 +70,9 @@ def ws_drink_available(drink, state):
 
 
 @app.route('/ws/shots/<int:booze_id>')
+@log_operation
 def ws_shots(booze_id):
+    log.debug("Shot request: booze_id=%s method=%s path=%s", booze_id, request.method, request.path)
     if app.options.must_login_to_dispense and not current_user.is_authenticated():
         return "login required"
 
@@ -140,6 +151,7 @@ def ws_drink_delete(drink_id):
         db.session.delete(drink)
         db.session.commit()
     except Exception as e:
+        log.exception("Drink deletion failed: drink_id=%s", drink_id)
         db.session.rollback()
         raise BadRequest(f"Failed to delete drink: {str(e)}")
     
@@ -156,7 +168,7 @@ def ws_drink_delete(drink_id):
 def ws_drink_save(drink):
 
     data = request.json['drink']
-    print(json.dumps(data, indent=4, sort_keys=True))
+    log.debug("Saving drink: drink_id=%s", data.get('id'))
     id = int(data["id"] or 0)
     if id > 0:
         drink = Drink.query.filter_by(id=int(id)).first()

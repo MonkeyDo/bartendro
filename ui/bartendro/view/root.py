@@ -1,4 +1,5 @@
 import memcache
+import logging
 import random
 from sqlalchemy import func, asc
 from sqlalchemy.exc import OperationalError
@@ -9,6 +10,8 @@ from bartendro.model.drink import Drink
 from bartendro.model.drink_name import DrinkName
 from bartendro import fsm
 from bartendro.mixer import LL_LOW, LL_OK
+
+log = logging.getLogger('bartendro')
 
 
 def process_ingredients(drinks):
@@ -42,6 +45,7 @@ def index():
     try:
         can_make = app.mixer.get_available_drink_list()
     except OperationalError:
+        log.exception("Failed to load available drinks for the homepage")
         return render_template(
             "index",
             options=app.options,

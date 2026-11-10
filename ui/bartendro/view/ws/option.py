@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import sqlite3
 import shutil
@@ -13,6 +14,8 @@ from sqlalchemy import text
 from bartendro.model.option import Option
 from bartendro.options import LOG_LEVELS, bartendro_options, load_options
 from bartendro.restart import restart_application
+
+log = logging.getLogger('bartendro')
 
 DB_BACKUP_DIR = '.db-backups'
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
@@ -43,7 +46,8 @@ def ws_options():
                 else:
                     raise InternalServerError
             except KeyError:
-                pass
+                log.debug("Ignoring unknown option %s", o.key)
+                continue
 
             data[o.key] = value
 
@@ -69,6 +73,7 @@ def ws_options():
 
         db.session.commit()
         app.options = load_options()
+        log.debug("Options saved and reloaded: keys=%s", sorted(data))
         reload = restart_application()
         return json.dumps({'reload': reload})
 
@@ -83,6 +88,7 @@ def ws_upload():
     try:
         db_file.save(file_name)
     except IOError:
+        log.exception("Database upload could not be saved: path=%s", file_name)
         raise InternalServerError
 
     con = None
@@ -91,6 +97,7 @@ def ws_upload():
         cur = con.cursor()
         cur.execute("SELECT * FROM dispenser")
     except sqlite3.DatabaseError:
+        log.exception("Database upload validation failed: path=%s", file_name)
         os.unlink(file_name)
         raise BadRequest
     finally:
@@ -104,13 +111,13 @@ def ws_upload():
 @login_required
 def ws_upload_confirm():
     file_name = request.json['file_name']
-    print(file_name)
-    print("Move file '%s' into place." % file_name)
+    log.debug("Installing uploaded database: source=%s destination=%s", file_name, DB_FILE)
 
     if not os.path.exists(DB_BACKUP_DIR):
         try:
             os.mkdir(DB_BACKUP_DIR)
         except OSError:
+            log.exception("Cannot create database backup directory: path=%s", DB_BACKUP_DIR)
             return json.dumps({'error': "Cannot create backup dir"})
 
     # close the connection to the database to flush anything that might still be in a cache somewhere
@@ -119,11 +126,13 @@ def ws_upload_confirm():
     try:
         shutil.move(DB_FILE, os.path.join(DB_BACKUP_DIR, "%d.db" % int(time())))
     except OSError:
+        log.exception("Database backup failed: source=%s backup_dir=%s", DB_FILE, DB_BACKUP_DIR)
         return json.dumps({'error': "Cannot backup old database"})
 
     try:
         shutil.move(file_name, DB_FILE)
     except OSError:
+        log.exception("Database replacement failed: source=%s destination=%s", file_name, DB_FILE)
         return json.dumps({'error': "Cannot backup old database"})
 
     mc = app.mc
