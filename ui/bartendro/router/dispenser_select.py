@@ -48,8 +48,12 @@ class DispenserSelect(object):
 
     def reset(self):
         if self.software_only: return
-        #self._write_byte_with_retry(ROUTER_ADDRESS, ROUTER_CMD_RESET)
-        sleep(.15)
+        # A previous application process may have left the dispensers in
+        # packet mode, where they no longer answer discovery requests.
+        self._write_byte_with_retry(ROUTER_ADDRESS, ROUTER_CMD_RESET)
+        # Router firmware resets the dispensers, then waits two seconds for
+        # startup. Allow that sequence to finish before selecting any ports.
+        sleep(3)
 
     def select(self, dispenser):
         if self.software_only: return
