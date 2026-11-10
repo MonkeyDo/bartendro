@@ -5,8 +5,10 @@ from bartendro.model.shot_log import ShotLog
 from sqlalchemy.exc import OperationalError
 
 log = logging.getLogger('bartendro')
+LOG_LEVELS = ('DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL')
 
 bartendro_options = {
+    'log_level': 'INFO',
     'use_liquid_level_sensors': False,
     'must_login_to_dispense': False,
     'login_name': "bartendro",
@@ -108,5 +110,13 @@ def load_options():
         setattr(options, "use_shotbot_ui", True)
     else:
         setattr(options, "i_am_shotbot", False)
+
+    if options.log_level not in LOG_LEVELS:
+        log.warning("Invalid logging level %r; using INFO", options.log_level)
+        options.log_level = 'INFO'
+    root_logger = logging.getLogger()
+    root_logger.setLevel(options.log_level)
+    for handler in root_logger.handlers:
+        handler.setLevel(options.log_level)
 
     return options

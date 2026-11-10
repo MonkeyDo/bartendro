@@ -40,6 +40,7 @@ CALCULATED_LIQUID_LOW_THRESHOLD = 250
 LL_OUT = 0
 LL_OK = 1
 LL_LOW = 2
+LL_STATE_NAMES = {LL_OUT: 'OUT', LL_OK: 'OK', LL_LOW: 'LOW'}
 
 log = logging.getLogger('bartendro')
 
@@ -523,7 +524,7 @@ class Mixer(object):
             self.mc.delete("other_drinks")
             self.mc.delete("available_drink_list")
 
-        log.info("Checking levels done. New state: %d" % ll_state)
+        log.info("Checking levels done. New state: %s (%d)", LL_STATE_NAMES[ll_state], ll_state)
 
         return ll_state
 
@@ -567,7 +568,7 @@ class Mixer(object):
             self.mc.delete("other_drinks")
             self.mc.delete("available_drink_list")
 
-        log.info("Calculated levels done. New state: %d" % ll_state)
+        log.info("Calculated levels done. New state: %s (%d)", LL_STATE_NAMES[ll_state], ll_state)
 
         return ll_state
 
