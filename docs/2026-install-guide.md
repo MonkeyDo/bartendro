@@ -43,23 +43,24 @@ We have only tested the Lazy Way and the image linked below is the updated 2026 
 
 2. RPI related configuration
 * Insert flashed SD card into RPI slot and boot the device
-* SSH into the RPI **or** connect a monitor and keyboard to the RPI
+* Connect a monitor and keyboard to the RPI
 * Boot the RPi and then log in as user 'pi' with password 'raspberry'
 * From the command line run `sudo raspi-config`
-  * Localisation Options: Set the Wifi Country and setup Wifi to a valid network (option L4)
-  * System Options: Connect to your wifi here if you are not using a Ethernet cable (option S1)
+  * Localisation Options: Set the Wifi Country
+  * (Optional) System Options: Connect to a valid wifi network (option L4) if you are not using a Ethernet cable (option S1)
   * Interface Options: Enable SSH (Option I2)
-  * (Optional) Interface Options: Disable console on serial port (first choice: NO), but do enable serial port (second choice: YES) (Option I6)
-  * (Optional) Interface Options: Enable I2C (Option I5)
+  * Interface Options: Disable console on serial port (first choice: NO), but do enable serial port (second choice: YES) (Option I6)
+  * Interface Options: Enable I2C (Option I5)
   * (Optional) Advanced Options: Expand the filesystem (option A1)
-  * navigate to 'Finish' & select YES when asked if raspberry pi should reboot (IMPORTANT)
+  * Navigate to 'Finish' & select YES when asked if raspberry pi should reboot (IMPORTANT)
+* If you can connect the pi with an ethernet cable to your router, do so now
 
 3. Running the online setup script
-* Once the RPI reboots fully use another device to `ssh pi@bartendro.local` (or use monitor and keyboard attached to the RPI)
+* Once the RPI reboots fully use another device to `ssh pi@raspberrypi.local` (or use monitor and keyboard attached to the RPI)
 * Log in again (pi/raspberry) and run:
 
 ```
-curl -fsSL https://raw.githubusercontent.com/MonkeyDo/bartendro/main/scripts/installation/setup_raspbian_image.sh | sudo bash
+curl -fsSL https://raw.githubusercontent.com/MonkeyDo/bartendro/refs/heads/master/scripts/installation/setup_raspbian_image.sh | sudo bash
 ```
 
 * The setup wizard will ask for the Bartendro user, password, Wi-Fi access point SSID/password, and network settings. Press Enter to accept each default.
@@ -83,8 +84,6 @@ sudo setup-bartendro-local-ap
 sudo check-bartendro-setup
 ```
 (Scripts are in the folder `/usr/local/sbin/`)
-
-* Ethernet can stay connected to an internet router while Wi-Fi runs the local access point. The Pi uses Ethernet's DHCP-provided route and DNS for updates and Python package downloads; Wi-Fi clients retain the local captive portal. This does not provide internet sharing to Wi-Fi clients. Use different subnets for Ethernet and the access point (the default AP subnet is `10.0.0.0/24`).
 
 * Reboot for good luck. Now the Pi should create a Wi-Fi network using the SSID/password selected in the wizard.
 * Once done rebooting, connect to bartendro's Wi-Fi with the user/password selected in the wizard. (defaults: `bartendro`/`bartendro`) You can use a phone, laptop or tablet for this. Your device may give an error that the network does not have internet connectivity, this is by design, you can safely ignore this.
