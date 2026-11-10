@@ -61,7 +61,7 @@ parser = argparse.ArgumentParser(description='Bartendro application process')
 parser.add_argument("-d",
                     "--debug",
                     help="Turn on debugging mode to see stack traces in the error log",
-                    default=True,
+                    default=False,
                     action='store_true')
 parser.add_argument("-t", "--host", help="Which interfaces to listen on. Default: 127.0.0.1", default="127.0.0.1", type=str)
 parser.add_argument("-p", "--port", help="Which port to listen on. Default: 8080", default="8080", type=int)
@@ -215,4 +215,6 @@ else:
         app.version = version
 
 if __name__ == '__main__':
-    app.run(host=args.host, port=args.port)
+    # The reloader starts another process, which cannot claim GPIO lines
+    # already held by this process. Keep hardware ownership in one process.
+    app.run(host=args.host, port=args.port, use_reloader=False)
